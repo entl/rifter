@@ -202,12 +202,10 @@ public class Account
         int currentYear = now.getYear() % 100;
         int currentMonth = now.getMonthValue();
 
-
         String cardNumber = paymentDetails.get("cardNumber");
         //split card date by '/' to get month and year
         String[] cardDate = paymentDetails.get("cardDate").split("/");
         String holderName = paymentDetails.get("holderName");
-
 
         //basic regex for card number, which checks whether card has 16 numbers
         String cardNumberRegex = "^[0-9]{16}$";
