@@ -3,7 +3,6 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
-import java.util.Map;
 
 
 public class Friends
@@ -26,6 +25,7 @@ public class Friends
         try
         {
             loadFriends();
+            loadRequests();
         } catch (FileNotFoundException e)
         {
             System.out.println("[!] Error: " + e);
@@ -217,5 +217,43 @@ public class Friends
             return;
         }
         System.out.println("[+] Request is sent");
+    }
+
+    public void acceptRequest(int position) throws IOException
+    {
+        HashMap <String, String> request = this.requests.get(position);
+
+        //create a temp file in order to rewrite friends.csv
+        File tempFile = new File("temp.txt");
+        FileWriter tempWriter = new FileWriter(tempFile, true);
+
+        File friendsFile = new File(this.friendsCSV);
+        Scanner scannerFriends = new Scanner(friendsFile);
+
+        while (scannerFriends.hasNext())
+        {
+            String currentLine = scannerFriends.next();
+            String[] friendship = currentLine.split(",");
+
+            //check whether line has friend id, user id, and status pending
+            if (friendship[FriendsColumns.FRIEND_ID.value].equals(this.userId) && friendship[FriendsColumns.USER_ID.value].equals(request.get("userId")) && friendship[FriendsColumns.STATUS.value].equals(FriendshipStatus.PENDING.value))
+            {
+                //rewrite line where was status pending
+                tempWriter.write(String.format("%s,%s,%s\n", this.userId, request.get("userId"), "accepted"));
+                //write a new line which symmetric to previous. user id and friend id swapped because friendship is mutual
+                tempWriter.write(String.format("%s,%s,%s\n", request.get("userId"), this.userId, "accepted"));
+            }
+            else
+            {
+                tempWriter.write(currentLine + "\n");
+            }
+        }
+        scannerFriends.close();
+        tempWriter.close();
+        //delete old file
+        friendsFile.delete();
+        //rename temp file to old name
+        tempFile.renameTo(friendsFile);
+
     }
 }
