@@ -1,3 +1,5 @@
+package Database;
+
 import java.io.File; // used for reading from file
 import java.io.FileNotFoundException;
 import java.io.FileWriter; //used to write in file
@@ -16,7 +18,7 @@ public class Account
 
     //class attributes represent columns in database
     //they have private modifiers because we will access them by using getters and setters
-    private int userId;
+    private String userId;
     private String email;
     private String username;
     private String password;
@@ -29,14 +31,13 @@ public class Account
     private float score;
 
     //we need constructor to make possible pass filename when creating an instance
-
-    protected Account(String filename)
+    public Account(String filename)
     {
         this.filename = filename;
     }
-    //getters and setters to make program more secure
 
-    public int getUserId()
+    //getters and setters to make program more secure
+    public String getUserId()
     {
         return userId;
     }
@@ -45,7 +46,8 @@ public class Account
         try
         {
             int lastId = getNumberOfUsersFromFile(this.filename);
-            this.userId = lastId + 1;
+            int newId = lastId + 1;
+            this.userId = String.valueOf(newId);
         } catch (FileNotFoundException e)
         {
             System.out.println("[!] Error: " + e);
@@ -259,6 +261,12 @@ public class Account
         this.balance = balance;
     }
 
+    public void addBalance(float value)
+    {
+
+        this.balance += Math.round(value * 100)/100.0f;;
+    }
+
     public float getScore()
     {
         return score;
@@ -269,8 +277,13 @@ public class Account
         this.score = score;
     }
 
+    public void addScore(float value)
+    {
+        this.score += Math.round(value * 100)/100.0f;
+    }
     //this function loads account details from database based on this.username
-    protected void loadAccountFromFile(String username) throws FileNotFoundException
+
+    public void loadAccountFromFile(String username) throws FileNotFoundException
     {
         File accounts = new File(this.filename);
         Scanner sc = new Scanner(accounts);
@@ -283,25 +296,27 @@ public class Account
             //check whether row has appropriate username
             if (Arrays.toString(Account).contains(username))
             {
-                this.userId = Integer.parseInt(Account[0]);
-                this.email = Account[1];
-                this.username = Account[2];
-                this.password = Account[3];
+                this.userId = Account[AccountColumns.USER_ID.value];
+                this.email = Account[AccountColumns.EMAIL.value];
+                this.username = Account[AccountColumns.USERNAME.value];
+                this.password = Account[AccountColumns.PASSWORD.value];
                 //check if payment details saved
-                if (!Account[4].equals("null"))
+                if (!Account[AccountColumns.PAYMENT_DETAILS.value].equals("null"))
                 {
-                    String[] paymentDetails = Account[4].split("-");
+                    String[] paymentDetails = Account[AccountColumns.PAYMENT_DETAILS.value].split("-");
                     this.paymentDetails.put("cardNumber", paymentDetails[0]);
                     this.paymentDetails.put("cardDate", paymentDetails[1]);
                     this.paymentDetails.put("holderName", paymentDetails[2]);
                 }
-                this.balance = Float.parseFloat(Account[5]);
+                float balance = Float.parseFloat(Account[AccountColumns.BALANCE.value]);
+                float score = Float.parseFloat(Account[AccountColumns.SCORE.value]);
+                this.balance = Math.round(balance * 100)/100.0f;
+                this.score = Math.round(score * 100)/100.0f;
                 break;
             }
         }
         sc.close();
     }
-
     protected void saveAccountToFile() throws IOException
     {
         FileWriter writer = new FileWriter(this.filename, true);
@@ -316,15 +331,57 @@ public class Account
         }
         if (this.paymentDetails.size() == 0)
         {
-            writer.write(String.format("%s,%s,%s,%s,null,%s\n", this.userId, this.email, this.username, this.password, this.balance));
+            writer.write(String.format("%s,%s,%s,%s,null,%s,%s\n", this.userId, this.email, this.username, this.password, this.balance,this.score));
         }
         else
         {
-            writer.write(String.format("%s,%s,%s,%s,%s-%s-%s,%s\n", this.userId, this.email, this.username,
+            writer.write(String.format("%s,%s,%s,%s,%s-%s-%s,%s,%s\n", this.userId, this.email, this.username,
                                                                     this.password, paymentDetails.get("cardNumber"), paymentDetails.get("cardDate"),
-                                                                    paymentDetails.get("holderName"), this.balance));
+                                                                    paymentDetails.get("holderName"), this.balance, this.score));
         }
         writer.close();
+    }
+
+    public void updateCredentials() throws IOException
+    {
+        //create a temp file in order to rewrite friends.csv
+        File tempFile = new File("temp.txt");
+        FileWriter tempWriter = new FileWriter(tempFile, true);
+
+        File accountsFile = new File(this.filename);
+        Scanner scannerAccounts = new Scanner(accountsFile);
+
+        scannerAccounts.useDelimiter("\n");
+        while (scannerAccounts.hasNext())
+        {
+            String currentLine = scannerAccounts.next();
+            String[] account = currentLine.split(",");
+
+            //check whether line has friend id, user id, and status pending
+            if (account[AccountColumns.USER_ID.value].equals(this.userId))
+            {
+                if (this.paymentDetails.size() == 0)
+                {
+                    tempWriter.write(String.format("%s,%s,%s,%s,null,%s,%s\n", this.userId, this.email, this.username, this.password, this.balance,this.score));
+                }
+                else
+                {
+                    tempWriter.write(String.format("%s,%s,%s,%s,%s-%s-%s,%s,%s\n", this.userId, this.email, this.username,
+                            this.password, paymentDetails.get("cardNumber"), paymentDetails.get("cardDate"),
+                            paymentDetails.get("holderName"), this.balance, this.score));
+                }
+            }
+            else
+            {
+                tempWriter.write(currentLine + "\n");
+            }
+        }
+        scannerAccounts.close();
+        tempWriter.close();
+        //delete old file
+        accountsFile.delete();
+        //rename temp file to old name
+        tempFile.renameTo(accountsFile);
     }
 
     public int getNumberOfUsersFromFile(String filename) throws FileNotFoundException
