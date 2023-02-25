@@ -1,3 +1,5 @@
+package Database;
+
 public enum FriendshipStatus
 {
     ACCEPTED("accepted"),
