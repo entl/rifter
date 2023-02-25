@@ -1,15 +1,20 @@
+package Database;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 
 public class Friends
 {
-    private String friendsCSV;
-    private String accountsCSV;
-    private String userId;
+    private final File friendsFile;
+    private final File accountsFile;
+    private final String userId;
 
     //https://www.geeksforgeeks.org/creating-an-arraylist-with-multiple-object-types-in-java/
     private ArrayList<HashMap<String, Object>> friends = new ArrayList<>();
@@ -17,11 +22,11 @@ public class Friends
     private ArrayList<HashMap<String, String>> requests = new ArrayList<>();
 
 
-    Friends(String userId, String friendsCSV, String accountsCSV)
+    public Friends(String userId, String friendsFilename, String accountsFilename)
     {
         this.userId = userId;
-        this.friendsCSV = friendsCSV;
-        this.accountsCSV = accountsCSV;
+        this.friendsFile = new File(friendsFilename);
+        this.accountsFile = new File(accountsFilename);
         try
         {
             loadFriends();
@@ -45,10 +50,8 @@ public class Friends
 
     private void loadFriends() throws FileNotFoundException
     {
-        //load file
-        File friendsFile = new File(this.friendsCSV);
         //create scanner to read from file
-        Scanner scannerFriends = new Scanner(friendsFile);
+        Scanner scannerFriends = new Scanner(this.friendsFile);
 
         //skip first line
         scannerFriends.next();
@@ -67,8 +70,7 @@ public class Friends
                 //we need to iterate over accounts.csv to get friend username and score
                 //to answer a question why I do not add username and score to friends.csv
                 //from my perspective in make lead to data inconsistency, for instance, if user would like to change username or when scored is changed
-                File accountsFile = new File(this.accountsCSV);
-                Scanner scannerAccounts = new Scanner(accountsFile);
+                Scanner scannerAccounts = new Scanner(this.accountsFile);
 
                 //explicitly set delimiter to '\n' to make possible to store cardholder name with space
                 scannerAccounts.useDelimiter("\n");
@@ -97,10 +99,8 @@ public class Friends
 
     public void loadRequests() throws FileNotFoundException
     {
-        //load file
-        File friendsFile = new File(this.friendsCSV);
         //create scanner to read from file
-        Scanner scannerFriends = new Scanner(friendsFile);
+        Scanner scannerFriends = new Scanner(this.friendsFile);
 
         //skip first line
         scannerFriends.next();
@@ -116,8 +116,7 @@ public class Friends
             {
                 //we open a file every iteration to start from the beginning
                 //we need to open accounts.csv to get username
-                File accountsFile = new File(this.accountsCSV);
-                Scanner scannerAccounts = new Scanner(accountsFile);
+                Scanner scannerAccounts = new Scanner(this.accountsFile);
 
                 //explicitly set delimiter to '\n' to make possible to store cardholder name with space
                 scannerAccounts.useDelimiter("\n");
@@ -145,7 +144,6 @@ public class Friends
         scannerFriends.close();
     }
 
-
     public void sendRequest(String username) throws IOException
     {
         //check whether user already in friends
@@ -158,9 +156,8 @@ public class Friends
             }
         }
 
-        File accountsFile = new File(this.accountsCSV);
-        Scanner scannerAccounts = new Scanner(accountsFile);
-        FileWriter friendWriter = new FileWriter(this.friendsCSV, true);
+        Scanner scannerAccounts = new Scanner(this.accountsFile);
+        FileWriter friendWriter = new FileWriter(this.friendsFile, true);
 
         //create variable which checks whether user exists in database
         boolean exists = false;
@@ -178,8 +175,7 @@ public class Friends
             //check if record has friend username. We are using enum to indicate index in array
             if (account[AccountColumns.USERNAME.value].equals(username))
             {
-                File friendsFile = new File(this.friendsCSV);
-                Scanner scannerFriends = new Scanner(friendsFile);
+                Scanner scannerFriends = new Scanner(this.friendsFile);
                 //skip first line
                 scannerFriends.next();
 
@@ -221,14 +217,13 @@ public class Friends
 
     public void acceptRequest(int position) throws IOException
     {
-        HashMap <String, String> request = this.requests.get(position);
+        HashMap<String, String> request = this.requests.get(position);
 
         //create a temp file in order to rewrite friends.csv
         File tempFile = new File("temp.txt");
         FileWriter tempWriter = new FileWriter(tempFile, true);
 
-        File friendsFile = new File(this.friendsCSV);
-        Scanner scannerFriends = new Scanner(friendsFile);
+        Scanner scannerFriends = new Scanner(this.friendsFile);
 
         while (scannerFriends.hasNext())
         {
@@ -242,8 +237,7 @@ public class Friends
                 tempWriter.write(String.format("%s,%s,%s\n", this.userId, request.get("userId"), "accepted"));
                 //write a new line which symmetric to previous. user id and friend id swapped because friendship is mutual
                 tempWriter.write(String.format("%s,%s,%s\n", request.get("userId"), this.userId, "accepted"));
-            }
-            else
+            } else
             {
                 tempWriter.write(currentLine + "\n");
             }
@@ -255,5 +249,40 @@ public class Friends
         //rename temp file to old name
         tempFile.renameTo(friendsFile);
 
+        //we need to reset array in order to apply changes
+        this.friends.clear();
+        this.requests.clear();
+        loadFriends();
+        loadRequests();
+
+    }
+
+    public ArrayList<HashMap<String, Object>> getLeaderBoard(Account user)
+    {
+        //we need to create temp variable in order to pass by value and do not change initial array
+        ArrayList<HashMap<String, Object>> tempFriends = this.friends;
+
+        //create hashmap of current user. This is made to make possible to show user in leaderboard with friends
+        HashMap<String, Object> currentUser = new HashMap<>();
+        currentUser.put("userId", "You");
+        currentUser.put("username", user.getUsername());
+        currentUser.put("score", user.getScore());
+
+        tempFriends.add(currentUser);
+
+        int n = tempFriends.size();
+        for (int i = 0; i < n - 1; i++)
+        {
+            for (int j = 0; j < n - i - 1; j++)
+            {
+                if ((float) tempFriends.get(j).get("score") < (float) tempFriends.get(j + 1).get("score"))
+                {
+                    // https://www.geeksforgeeks.org/how-to-swap-two-elements-in-an-arraylist-in-java/
+                    Collections.swap(tempFriends, j, j + 1);
+                }
+            }
+        }
+
+        return tempFriends;
     }
 }
