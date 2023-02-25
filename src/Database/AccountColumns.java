@@ -1,3 +1,5 @@
+package Database;
+
 //https://www.baeldung.com/java-enum-values
 public enum AccountColumns
 {
