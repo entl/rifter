@@ -196,7 +196,8 @@ public class Account
         return false;
     }
 
-    private boolean validatePaymentDetails(HashMap<String, String> paymentDetails)
+    //set to protected because we use it transaction class as well
+    protected boolean validatePaymentDetails(HashMap<String, String> paymentDetails)
     {
         //get current date in order to verify card
         LocalDateTime now = LocalDateTime.now();
@@ -384,7 +385,7 @@ public class Account
         tempFile.renameTo(accountsFile);
     }
 
-    public int getNumberOfUsersFromFile(String filename) throws FileNotFoundException
+    private int getNumberOfUsersFromFile(String filename) throws FileNotFoundException
     {
         File accounts = new File(filename);
         Scanner sc = new Scanner(accounts);
