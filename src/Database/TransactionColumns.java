@@ -6,8 +6,9 @@ public enum TransactionColumns
     USER_ID(1),
     TRANSACTION_TYPE(2),
     ITEM_ID(3),
-    AMOUNT(4),
-    TRANSACTION_DATE(5);
+    QUANTITY(4),
+    AMOUNT(5),
+    TRANSACTION_DATE(6);
 
     public final int value;
 
