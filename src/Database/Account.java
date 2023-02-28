@@ -265,7 +265,12 @@ public class Account
     public void addBalance(float value)
     {
 
-        this.balance += Math.round(value * 100)/100.0f;;
+        this.balance += Math.round(value * 100)/100.0f;
+    }
+
+    public void subtractBalance(float value)
+    {
+        this.balance -= Math.round(value * 100)/100.0f;
     }
 
     public float getScore()
@@ -345,9 +350,9 @@ public class Account
 
     public void updateCredentials() throws IOException
     {
-        //create a temp file in order to rewrite friends.csv
+        //create a temp file in order to rewrite
         File tempFile = new File("temp.txt");
-        FileWriter tempWriter = new FileWriter(tempFile, true);
+        FileWriter tempWriter = new FileWriter(tempFile);
 
         File accountsFile = new File(this.filename);
         Scanner scannerAccounts = new Scanner(accountsFile);
@@ -358,7 +363,6 @@ public class Account
             String currentLine = scannerAccounts.next();
             String[] account = currentLine.split(",");
 
-            //check whether line has friend id, user id, and status pending
             if (account[AccountColumns.USER_ID.value].equals(this.userId))
             {
                 if (this.paymentDetails.size() == 0)
