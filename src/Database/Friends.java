@@ -221,7 +221,7 @@ public class Friends
 
         //create a temp file in order to rewrite friends.csv
         File tempFile = new File("temp.txt");
-        FileWriter tempWriter = new FileWriter(tempFile, true);
+        FileWriter tempWriter = new FileWriter(tempFile);
 
         Scanner scannerFriends = new Scanner(this.friendsFile);
 
