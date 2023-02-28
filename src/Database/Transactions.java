@@ -11,16 +11,16 @@ import java.util.Scanner;
 
 public class Transactions
 {
-    private final String userId;
     private final File transactionsFile;
+    private final File itemFile;
 
     private final Account user;
 
 
-    public Transactions(String transactionsFilename, String userId, Account user) throws FileNotFoundException
+    public Transactions(String transactionsFilename, String itemFile, Account user) throws FileNotFoundException
     {
-        this.userId = userId;
         this.transactionsFile = new File(transactionsFilename);
+        this.itemFile = new File(itemFile);
         this.user = user;
     }
 
@@ -40,7 +40,7 @@ public class Transactions
             String[] record = currentLine.split(",");
 
             //use enum to easily operate with csv columns
-            if(record[TransactionColumns.USER_ID.value].equals(this.userId) && record[TransactionColumns.TRANSACTION_TYPE.value].equals(TransactionType.TOP_UP.value))
+            if(record[TransactionColumns.USER_ID.value].equals(this.user.getUserId()) && record[TransactionColumns.TRANSACTION_TYPE.value].equals(TransactionType.TOP_UP.value))
             {
                 HashMap<String,Object> temp = new HashMap<>();
 
@@ -53,38 +53,6 @@ public class Transactions
         }
         scannerTransactions.close();
         return topUps;
-    }
-
-    public ArrayList<HashMap<String, Object>> getPurchases() throws FileNotFoundException
-    {
-        ArrayList<HashMap<String, Object>> purchases = new ArrayList<>();
-
-        Scanner scannerPurchases = new Scanner(this.transactionsFile);
-        //helps to avoid spaces in file
-        scannerPurchases.useDelimiter("\n");
-        //skip column names
-        scannerPurchases.next();
-
-        while (scannerPurchases.hasNext())
-        {
-            String currentLine = scannerPurchases.next().replace("\r", "");
-            String[] record = currentLine.split(",");
-
-            //use enum to easily operate with csv columns
-            if(record[TransactionColumns.USER_ID.value].equals(this.userId) && record[TransactionColumns.TRANSACTION_TYPE.value].equals(TransactionType.BUY.value))
-            {
-                HashMap<String,Object> temp = new HashMap<>();
-
-                temp.put("transactionId", record[TransactionColumns.TRANSACTION_ID.value]);
-                temp.put("itemId", record[TransactionColumns.ITEM_ID.value]); //change to item name
-                temp.put("amount", record[TransactionColumns.AMOUNT.value]);
-                temp.put("transactionDate", record[TransactionColumns.TRANSACTION_DATE.value]);
-
-                purchases.add(temp);
-            }
-        }
-        scannerPurchases.close();
-        return purchases;
     }
 
     public void topUpCard() throws IOException
@@ -187,11 +155,128 @@ public class Transactions
         writerTransactions.close();
     }
 
+    public ArrayList<HashMap<String, Object>> getPurchases() throws FileNotFoundException
+    {
+        ArrayList<HashMap<String, Object>> purchases = new ArrayList<>();
+
+        Scanner scannerPurchases = new Scanner(this.transactionsFile);
+        //helps to avoid spaces in file
+        scannerPurchases.useDelimiter("\n");
+        //skip column names
+        scannerPurchases.next();
+
+        while (scannerPurchases.hasNext())
+        {
+            String currentLine = scannerPurchases.next().replace("\r", "");
+            String[] record = currentLine.split(",");
+
+            //use enum to easily operate with csv columns
+            if(record[TransactionColumns.USER_ID.value].equals(this.user.getUserId()) && record[TransactionColumns.TRANSACTION_TYPE.value].equals(TransactionType.BUY.value))
+            {
+                HashMap<String,Object> temp = new HashMap<>();
+
+                temp.put("transactionId", record[TransactionColumns.TRANSACTION_ID.value]);
+                temp.put("itemId", record[TransactionColumns.ITEM_ID.value]); //change to item name
+                temp.put("amount", record[TransactionColumns.AMOUNT.value]);
+                temp.put("transactionDate", record[TransactionColumns.TRANSACTION_DATE.value]);
+
+                purchases.add(temp);
+            }
+        }
+        scannerPurchases.close();
+        return purchases;
+    }
+
+    public void purchaseItem(String itemId, int quantity) throws IOException
+    {
+        Scanner scannerItems = new Scanner(this.itemFile);
+        scannerItems.useDelimiter("\n");
+        scannerItems.next();
+        while (scannerItems.hasNext())
+        {
+            String[] item = scannerItems.next().split(",");
+            if (item[ItemsColumns.ITEM_ID.value].equals(itemId))
+            {
+                float toPay = Float.parseFloat(item[ItemsColumns.PRICE.value])  * quantity;
+                this.user.subtractBalance(toPay);
+                this.user.updateCredentials();
+                item[ItemsColumns.STOCK.value] =  String.valueOf(Integer.parseInt(item[ItemsColumns.STOCK.value]) - quantity);
+                String updatedItem = String.join(",", item)+"\n";
+                //need to close scanner before updating file, we cannot delete and rename it because file is in operation
+                scannerItems.close();
+                updateItemFile(updatedItem, item[ItemsColumns.ITEM_ID.value]);
+                savePurchase(item[ItemsColumns.ITEM_ID.value], quantity, toPay);
+                break;
+            }
+        }
+
+    }
+
+    public void updateItemFile(String item, String itemId) throws IOException
+    {
+        //create a temp file in order to rewrite friends.csv
+        File tempFile = new File("temp.txt");
+        FileWriter tempWriter = new FileWriter(tempFile);
+
+        Scanner scannerItems = new Scanner(this.itemFile);
+        scannerItems.useDelimiter("\n");
+
+        while (scannerItems.hasNext())
+        {
+            String currentLine = scannerItems.next().replace("\r", "");
+            String[] currentItem = currentLine.split(",");
+
+            System.out.println(currentItem[ItemsColumns.ITEM_ID.value].equals(itemId));
+
+            //check whether line has friend id, user id, and status pending
+            if (currentItem[ItemsColumns.ITEM_ID.value].equals(itemId))
+            {
+                tempWriter.write(item);
+            }
+            else
+            {
+                tempWriter.write(currentLine + "\n");
+            }
+        }
+        scannerItems.close();
+        tempWriter.close();
+        //delete old file
+        this.itemFile.delete();
+        //rename temp file to old name
+        tempFile.renameTo(this.itemFile);
+    }
+
     private void savePurchase(String itemId, int quantity, float amount) throws IOException
     {
         FileWriter writerTransactions = new FileWriter(transactionsFile, true);
         writerTransactions.write(String.format("%s,%s,%s,%s,%s,%s,%s\n", getNumberOfTransactions(), this.user.getUserId(), TransactionType.BUY.value, itemId, quantity, amount, LocalDate.now()));
         writerTransactions.close();
+    }
+
+    public ArrayList<HashMap<String, Object>> getItems() throws FileNotFoundException
+    {
+        ArrayList<HashMap<String, Object>> items = new ArrayList<>();
+
+        Scanner scannerItems = new Scanner(itemFile);
+        scannerItems.useDelimiter("\n");
+        scannerItems.next();
+        while (scannerItems.hasNext())
+        {
+            String[] item = scannerItems.next().replace("\r", "").split(",");
+            HashMap<String, Object> tempItem = new HashMap<>();
+
+            tempItem.put("itemId", item[ItemsColumns.ITEM_ID.value]);
+            tempItem.put("company", item[ItemsColumns.COMPANY_NAME.value]);
+            tempItem.put("name", item[ItemsColumns.NAME.value]);
+            tempItem.put("price", Float.parseFloat(item[ItemsColumns.PRICE.value]));
+            tempItem.put("stock", Integer.parseInt(item[ItemsColumns.STOCK.value]));
+            tempItem.put("description", item[ItemsColumns.DESCRIPTION.value]);
+
+            items.add(tempItem);
+        }
+
+        scannerItems.close();
+        return items;
     }
 
     private int getNumberOfTransactions() throws FileNotFoundException
