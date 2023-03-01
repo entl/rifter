@@ -1,20 +1,20 @@
 package Database;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.io.File; //used to open file
+import java.io.FileNotFoundException; //exception when we try to open file
+import java.io.FileWriter; //used to write files
+import java.io.IOException; //exception during writing to file
+import java.util.Collections; //used to swap values in bubble sort
+import java.util.HashMap; //used to store friends
+import java.util.ArrayList; //used to make flexible array
+import java.util.Scanner; //used to read from file
 
 
 public class Friends
 {
     private final File friendsFile;
     private final File accountsFile;
-    private final String userId;
+    private final Account user;
 
     //https://www.geeksforgeeks.org/creating-an-arraylist-with-multiple-object-types-in-java/
     private ArrayList<HashMap<String, Object>> friends = new ArrayList<>();
@@ -22,9 +22,10 @@ public class Friends
     private ArrayList<HashMap<String, String>> requests = new ArrayList<>();
 
 
-    public Friends(String userId, String friendsFilename, String accountsFilename)
+    public Friends(Account user, String friendsFilename, String accountsFilename)
     {
-        this.userId = userId;
+        //pass instance of Account class to access attributes and methods
+        this.user = user;
         this.friendsFile = new File(friendsFilename);
         this.accountsFile = new File(accountsFilename);
         try
@@ -63,7 +64,7 @@ public class Friends
             //check whether this record has appropriate user_id and status of record is accepted
             //in order to make program more flexible we do not hard code array position
             //instead enum was implemented, so if we have a change in the order of CSV columns, we will need to change only enum
-            if (friendship[FriendsColumns.USER_ID.value].equals(this.userId) && friendship[FriendsColumns.STATUS.value].equals(FriendshipStatus.ACCEPTED.value))
+            if (friendship[FriendsColumns.USER_ID.value].equals(this.user.getUserId()) && friendship[FriendsColumns.STATUS.value].equals(FriendshipStatus.ACCEPTED.value))
             {
                 //we open a file every iteration to start from the beginning
                 //because friends.csv contains information only about friend relationship
@@ -78,7 +79,7 @@ public class Friends
                 {
                     //split record to get values separately
                     String[] account = scannerAccounts.next().split(",");
-                    //check if the record has friend id
+                    //check if the account has friend id
                     if (account[AccountColumns.USER_ID.value].equals(friendship[FriendsColumns.FRIEND_ID.value]))
                     {
                         //declare temp hashmap to fill it with necessary values such as user_id, username and score
@@ -112,7 +113,7 @@ public class Friends
             //from perspective of another user we are their friend, so we get records only where current user id is on place of friend id
             //in order to make program more flexible we do not hard code array position
             //instead enum was implemented, so if we change CSV column, we will need to change single enum
-            if (friendship[FriendsColumns.FRIEND_ID.value].equals(this.userId) && friendship[FriendsColumns.STATUS.value].equals(FriendshipStatus.PENDING.value))
+            if (friendship[FriendsColumns.FRIEND_ID.value].equals(this.user.getUserId()) && friendship[FriendsColumns.STATUS.value].equals(FriendshipStatus.PENDING.value))
             {
                 //we open a file every iteration to start from the beginning
                 //we need to open accounts.csv to get username
@@ -166,7 +167,7 @@ public class Friends
             //get separate values
             String[] account = scannerAccounts.next().split(",");
 
-            if (account[AccountColumns.USER_ID.value].equals(this.userId))
+            if (account[AccountColumns.USER_ID.value].equals(this.user.getUserId()))
             {
                 System.out.println("[-] You cannot add yourself to friends");
                 return;
@@ -186,7 +187,7 @@ public class Friends
                 {
                     String[] friendship = scannerFriends.next().split(",");
                     //check if line contains this.user_id, friend_id and status is pending
-                    if (friendship[FriendsColumns.USER_ID.value].equals(this.userId) && friendship[FriendsColumns.FRIEND_ID.value].equals(account[AccountColumns.USER_ID.value]) && friendship[FriendsColumns.STATUS.value].equals("pending"))
+                    if (friendship[FriendsColumns.USER_ID.value].equals(this.user.getUserId()) && friendship[FriendsColumns.FRIEND_ID.value].equals(account[AccountColumns.USER_ID.value]) && friendship[FriendsColumns.STATUS.value].equals("pending"))
                     {
                         System.out.println("[-] You have already sent request to this user");
                         scannerFriends.close();
@@ -198,7 +199,7 @@ public class Friends
                 scannerFriends.close();
 
                 //add request to CSV
-                friendWriter.write(String.format("%s,%s,%s\n", this.userId, account[AccountColumns.USER_ID.value], "pending"));
+                friendWriter.write(String.format("%s,%s,%s\n", this.user.getUserId(), account[AccountColumns.USER_ID.value], "pending"));
                 exists = true;
                 break;
             }
@@ -231,12 +232,13 @@ public class Friends
             String[] friendship = currentLine.split(",");
 
             //check whether line has friend id, user id, and status pending
-            if (friendship[FriendsColumns.FRIEND_ID.value].equals(this.userId) && friendship[FriendsColumns.USER_ID.value].equals(request.get("userId")) && friendship[FriendsColumns.STATUS.value].equals(FriendshipStatus.PENDING.value))
+            if (friendship[FriendsColumns.FRIEND_ID.value].equals(this.user.getUserId()) && friendship[FriendsColumns.USER_ID.value].equals(request.get("userId")) && friendship[FriendsColumns.STATUS.value].equals(FriendshipStatus.PENDING.value))
             {
                 //rewrite line where was status pending
-                tempWriter.write(String.format("%s,%s,%s\n", this.userId, request.get("userId"), "accepted"));
-                //write a new line which symmetric to previous. user id and friend id swapped because friendship is mutual
-                tempWriter.write(String.format("%s,%s,%s\n", request.get("userId"), this.userId, "accepted"));
+                tempWriter.write(String.format("%s,%s,%s\n", this.user.getUserId(), request.get("userId"), "accepted"));
+                //write a new line which symmetric to previous.
+                // user id and friend id swapped because friendship is mutual
+                tempWriter.write(String.format("%s,%s,%s\n", request.get("userId"), this.user.getUserId(), "accepted"));
             } else
             {
                 tempWriter.write(currentLine + "\n");
@@ -252,9 +254,8 @@ public class Friends
         //we need to reset array in order to apply changes
         this.friends.clear();
         this.requests.clear();
+        //load again friends to fill friends array
         loadFriends();
-        loadRequests();
-
     }
 
     public ArrayList<HashMap<String, Object>> getLeaderBoard(Account user)
@@ -270,6 +271,7 @@ public class Friends
 
         tempFriends.add(currentUser);
 
+        //bubble sort
         int n = tempFriends.size();
         for (int i = 0; i < n - 1; i++)
         {
