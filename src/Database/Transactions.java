@@ -1,22 +1,21 @@
 package Database;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Scanner;
+import java.io.File; //used to open file
+import java.io.FileNotFoundException; //exception for file opening
+import java.io.FileWriter; //used to write into a file
+import java.io.IOException; // exception for writing
+import java.time.LocalDate; //used to write date of the transaction
+import java.util.ArrayList; //used to make flexible list of quests
+import java.util.HashMap; //used to store key:value pairs
+import java.util.Scanner; //used to read from file
 
 public class Transactions
 {
     private final File transactionsFile;
     private final File itemFile;
-
     private final Account user;
 
-
+    //constructor for Transactions class. pass instance of user to access its attributes and methods
     public Transactions(String transactionsFilename, String itemFile, Account user) throws FileNotFoundException
     {
         this.transactionsFile = new File(transactionsFilename);
@@ -36,17 +35,19 @@ public class Transactions
 
         while (scannerTransactions.hasNext())
         {
+            //replace "\r" (return) because when we get last line it may break hashmap and later comparison
             String currentLine = scannerTransactions.next().replace("\r", "");
             String[] record = currentLine.split(",");
 
             //use enum to easily operate with csv columns
-            if(record[TransactionColumns.USER_ID.value].equals(this.user.getUserId()) && record[TransactionColumns.TRANSACTION_TYPE.value].equals(TransactionType.TOP_UP.value))
+            if(record[TransactionsColumns.USER_ID.value].equals(this.user.getUserId()) && record[TransactionsColumns.TRANSACTION_TYPE.value].equals(TransactionsType.TOP_UP.value))
             {
+                //create temp hashmap to add it later to the arraylist
                 HashMap<String,Object> temp = new HashMap<>();
 
-                temp.put("transactionId", record[TransactionColumns.TRANSACTION_ID.value]);
-                temp.put("amount", record[TransactionColumns.AMOUNT.value]);
-                temp.put("transactionDate", record[TransactionColumns.TRANSACTION_DATE.value]);
+                temp.put("transactionId", record[TransactionsColumns.TRANSACTION_ID.value]);
+                temp.put("amount", record[TransactionsColumns.AMOUNT.value]);
+                temp.put("transactionDate", record[TransactionsColumns.TRANSACTION_DATE.value]);
 
                 topUps.add(temp);
             }
@@ -58,6 +59,7 @@ public class Transactions
     public void topUpCard() throws IOException
     {
         HashMap<String, String> paymentDetails = new HashMap<>();
+        //scanner of user input
         Scanner inputScanner = new Scanner(System.in);
 
         if (this.user.getPaymentDetails().size() == 0)
@@ -66,6 +68,7 @@ public class Transactions
         }
         else
         {
+            //validation of user choice
             while (true)
             {
                 System.out.println(this.user.getPaymentDetails());
@@ -73,6 +76,9 @@ public class Transactions
                 String userChoice = inputScanner.nextLine();
                 if (userChoice.equals("y"))
                 {
+                    //we do not use actually payment details in the program
+                    //but still I get it from the user instance
+                    //later it can be used to send details to the bank for the approval
                     paymentDetails = this.user.getPaymentDetails();
                     break;
                 }
@@ -88,6 +94,7 @@ public class Transactions
             }
         }
 
+        //validation of amount that user has inputted
         while (true)
         {
             System.out.print("[+] Enter amount:");
@@ -105,9 +112,9 @@ public class Transactions
 
     private void createPaymentMethod(HashMap<String, String> paymentDetails, Scanner inputScanner) throws IOException
     {
+        //iterate till user has not entered correct details
         while (true)
         {
-
             System.out.print("[+] Enter card number: ");
             paymentDetails.put("cardNumber", inputScanner.nextLine());
             System.out.print("[+] Enter expiration date (e.g. 05/23): ");
@@ -140,7 +147,6 @@ public class Transactions
         {
             this.user.addBalance(amount);
             this.user.updateCredentials();
-            System.out.println("[+] Money successfully added");
             return true;
         }
 
@@ -151,7 +157,7 @@ public class Transactions
     private void saveTopUp(float amount) throws IOException
     {
         FileWriter writerTransactions = new FileWriter(transactionsFile, true);
-        writerTransactions.write(String.format("%s,%s,%s,%s,%s,%s,%s\n", getNumberOfTransactions(), this.user.getUserId(), TransactionType.TOP_UP.value, "null", "null", amount, LocalDate.now()));
+        writerTransactions.write(String.format("%s,%s,%s,%s,%s,%s,%s\n", getNumberOfTransactions(), this.user.getUserId(), TransactionsType.TOP_UP.value, "null", "null", amount, LocalDate.now()));
         writerTransactions.close();
     }
 
@@ -171,14 +177,14 @@ public class Transactions
             String[] record = currentLine.split(",");
 
             //use enum to easily operate with csv columns
-            if(record[TransactionColumns.USER_ID.value].equals(this.user.getUserId()) && record[TransactionColumns.TRANSACTION_TYPE.value].equals(TransactionType.BUY.value))
+            if(record[TransactionsColumns.USER_ID.value].equals(this.user.getUserId()) && record[TransactionsColumns.TRANSACTION_TYPE.value].equals(TransactionsType.BUY.value))
             {
                 HashMap<String,Object> temp = new HashMap<>();
 
-                temp.put("transactionId", record[TransactionColumns.TRANSACTION_ID.value]);
-                temp.put("itemId", record[TransactionColumns.ITEM_ID.value]); //change to item name
-                temp.put("amount", record[TransactionColumns.AMOUNT.value]);
-                temp.put("transactionDate", record[TransactionColumns.TRANSACTION_DATE.value]);
+                temp.put("transactionId", record[TransactionsColumns.TRANSACTION_ID.value]);
+                temp.put("itemId", record[TransactionsColumns.ITEM_ID.value]); //change to item name
+                temp.put("amount", record[TransactionsColumns.AMOUNT.value]);
+                temp.put("transactionDate", record[TransactionsColumns.TRANSACTION_DATE.value]);
 
                 purchases.add(temp);
             }
@@ -190,20 +196,42 @@ public class Transactions
     public void purchaseItem(String itemId, int quantity) throws IOException
     {
         Scanner scannerItems = new Scanner(this.itemFile);
+        //use \n to avoid issues with spaces
         scannerItems.useDelimiter("\n");
         scannerItems.next();
         while (scannerItems.hasNext())
         {
+            //get item values separately
             String[] item = scannerItems.next().split(",");
             if (item[ItemsColumns.ITEM_ID.value].equals(itemId))
             {
+                //check stock
+                if (quantity > Integer.parseInt(item[ItemsColumns.STOCK.value]))
+                {
+                    System.out.println("[-] Sorry, we do not have so many items");
+                    return;
+                }
+
                 float toPay = Float.parseFloat(item[ItemsColumns.PRICE.value])  * quantity;
+                //check if user has balance to pay
+                if (toPay > this.user.getBalance())
+                {
+                    System.out.println("[-] Sorry, your balance is lower that the price.");
+                    return;
+                }
+                //update balance
                 this.user.subtractBalance(toPay);
                 this.user.updateCredentials();
+
+                //subtract purchased quantity from initial
                 item[ItemsColumns.STOCK.value] =  String.valueOf(Integer.parseInt(item[ItemsColumns.STOCK.value]) - quantity);
+                //create a string to write to the file
                 String updatedItem = String.join(",", item)+"\n";
+
                 //need to close scanner before updating file, we cannot delete and rename it because file is in operation
                 scannerItems.close();
+
+                //update item values in the file
                 updateItemFile(updatedItem, item[ItemsColumns.ITEM_ID.value]);
                 savePurchase(item[ItemsColumns.ITEM_ID.value], quantity, toPay);
                 break;
@@ -223,6 +251,8 @@ public class Transactions
 
         while (scannerItems.hasNext())
         {
+            //replace "\r" is used to avoid problems with comparison.
+            //after investigation, I suppose that we need to replace "\r" only when we manually add values to files
             String currentLine = scannerItems.next().replace("\r", "");
             String[] currentItem = currentLine.split(",");
 
@@ -240,6 +270,7 @@ public class Transactions
         }
         scannerItems.close();
         tempWriter.close();
+
         //delete old file
         this.itemFile.delete();
         //rename temp file to old name
@@ -248,20 +279,25 @@ public class Transactions
 
     private void savePurchase(String itemId, int quantity, float amount) throws IOException
     {
+        //add new record to the purchase file
         FileWriter writerTransactions = new FileWriter(transactionsFile, true);
-        writerTransactions.write(String.format("%s,%s,%s,%s,%s,%s,%s\n", getNumberOfTransactions(), this.user.getUserId(), TransactionType.BUY.value, itemId, quantity, amount, LocalDate.now()));
+        writerTransactions.write(String.format("%s,%s,%s,%s,%s,%s,%s\n", getNumberOfTransactions(), this.user.getUserId(), TransactionsType.BUY.value, itemId, quantity, amount, LocalDate.now()));
         writerTransactions.close();
     }
 
     public ArrayList<HashMap<String, Object>> getItems() throws FileNotFoundException
     {
+        //create local array list to return it from the method
         ArrayList<HashMap<String, Object>> items = new ArrayList<>();
 
         Scanner scannerItems = new Scanner(itemFile);
+        //used to avoid problems with spaces
         scannerItems.useDelimiter("\n");
         scannerItems.next();
         while (scannerItems.hasNext())
         {
+            //replace "\r" is used to avoid problems with comparison.
+            //after investigation, I suppose that we need to replace "\r" only when we manually add values to files
             String[] item = scannerItems.next().replace("\r", "").split(",");
             HashMap<String, Object> tempItem = new HashMap<>();
 
@@ -279,6 +315,7 @@ public class Transactions
         return items;
     }
 
+    //we use this method to make unique id based on the number of lines
     private int getNumberOfTransactions() throws FileNotFoundException
     {
         Scanner sc = new Scanner(this.transactionsFile);
