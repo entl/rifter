@@ -1,6 +1,6 @@
 package Database;
 
-public enum TransactionColumns
+public enum TransactionsColumns
 {
     TRANSACTION_ID(0),
     USER_ID(1),
@@ -12,5 +12,5 @@ public enum TransactionColumns
 
     public final int value;
 
-    private TransactionColumns(int value){this.value = value;}
+    private TransactionsColumns(int value){this.value = value;}
 }

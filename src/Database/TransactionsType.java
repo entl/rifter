@@ -1,11 +1,11 @@
 package Database;
 
-public enum TransactionType
+public enum TransactionsType
 {
     TOP_UP("top up"),
     BUY("buy");
 
     public final String value;
 
-    private TransactionType(String value){this.value = value;}
+    private TransactionsType(String value){this.value = value;}
 }
