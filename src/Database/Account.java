@@ -13,8 +13,8 @@ import java.util.regex.Pattern; //used to create pattern which is appropriate fo
 
 public class Account
 {
-    //filename of the database with accounts
-    private String filename;
+    //database file with accounts
+    private File accountFile;
 
     //class attributes represent columns in database
     //they have private modifiers because we will access them by using getters and setters
@@ -22,18 +22,15 @@ public class Account
     private String email;
     private String username;
     private String password;
-
     //use hashmap in order to store card details more convenient
     private HashMap<String, String> paymentDetails = new HashMap<>();
-
     private float balance;
-
     private float score;
 
     //we need constructor to make possible pass filename when creating an instance
     public Account(String filename)
     {
-        this.filename = filename;
+        this.accountFile = new File(filename);
     }
 
     //getters and setters to make program more secure
@@ -41,11 +38,13 @@ public class Account
     {
         return userId;
     }
+    //assign unique id to user
     public void setUserId()
     {
         try
         {
-            int lastId = getNumberOfUsersFromFile(this.filename);
+            //we assign id based on number of lines
+            int lastId = getNumberOfUsersFromFile();
             int newId = lastId + 1;
             this.userId = String.valueOf(newId);
         } catch (FileNotFoundException e)
@@ -78,13 +77,13 @@ public class Account
 
     private boolean validateEmail(String email) throws FileNotFoundException
     {
+        //create regular expression in order to check email later
         String emailRegex = "^[A-Za-z0-9-_.]+@[A-Za-z0-9-_.]+$";
         Pattern emailPattern = Pattern.compile(emailRegex);
         Matcher emailMatcher = emailPattern.matcher(email);
 
         //we need to check if email address is free to use
-        File accounts = new File(this.filename);
-        Scanner sc = new Scanner(accounts);
+        Scanner sc = new Scanner(this.accountFile);
         //explicitly set delimiter to '\n' so cardholder name with space does not stop the scanner
         sc.useDelimiter("\n");
         while (sc.hasNext())
@@ -132,9 +131,8 @@ public class Account
             return false;
         }
 
-        //we need to check if username address is unique
-        File accounts = new File(this.filename);
-        Scanner sc = new Scanner(accounts);
+        //we need to check if username is unique
+        Scanner sc = new Scanner(this.accountFile);
         //explicitly set delimiter to '\n' so cardholder name with space does not stop the scanner
         sc.useDelimiter("\n");
         while (sc.hasNext())
@@ -196,7 +194,7 @@ public class Account
         return false;
     }
 
-    //set to protected because we use it transaction class as well
+    //set to protected because we use it in transaction class as well
     protected boolean validatePaymentDetails(HashMap<String, String> paymentDetails)
     {
         //get current date in order to verify card
@@ -232,13 +230,11 @@ public class Account
         try
         {
             //check if card expired
-            if (Integer.parseInt(cardDate[0]) < currentMonth)
+            if (Integer.parseInt(cardDate[1]) >= currentYear && Integer.parseInt(cardDate[0]) >= currentMonth)
             {
-                System.out.println("[-] Card has expired");
-                return false;
+                return true;
             }
-            //check if card expired
-            if (Integer.parseInt(cardDate[1]) < currentYear)
+            else
             {
                 System.out.println("[-] Card has expired");
                 return false;
@@ -249,7 +245,6 @@ public class Account
             System.out.println("[!] Error: " + e);
             return false;
         }
-        return true;
     }
 
     public float getBalance()
@@ -264,12 +259,13 @@ public class Account
 
     public void addBalance(float value)
     {
-
+        //we need to round value. sometimes java have vague calculations and sets many symbols after a decimal point
         this.balance += Math.round(value * 100)/100.0f;
     }
 
     public void subtractBalance(float value)
     {
+        //we need to round value. sometimes java have vague calculations and sets many symbols after a decimal point
         this.balance -= Math.round(value * 100)/100.0f;
     }
 
@@ -285,37 +281,38 @@ public class Account
 
     public void addScore(float value)
     {
+        //we need to round value. sometimes java have vague calculations and sets many symbols after a decimal point
         this.score += Math.round(value * 100)/100.0f;
     }
     //this function loads account details from database based on this.username
 
     public void loadAccountFromFile(String username) throws FileNotFoundException
     {
-        File accounts = new File(this.filename);
-        Scanner sc = new Scanner(accounts);
+        Scanner sc = new Scanner(this.accountFile);
         //explicitly set delimiter to '\n' to make possible to store cardholder name with space
         sc.useDelimiter("\n");
         while (sc.hasNext())
         {
             //get values from row
-            String[] Account = sc.next().split(",");
+            String[] account = sc.next().split(",");
             //check whether row has appropriate username
-            if (Arrays.toString(Account).contains(username))
+            if (Arrays.toString(account).contains(username))
             {
-                this.userId = Account[AccountColumns.USER_ID.value];
-                this.email = Account[AccountColumns.EMAIL.value];
-                this.username = Account[AccountColumns.USERNAME.value];
-                this.password = Account[AccountColumns.PASSWORD.value];
+                this.userId = account[AccountColumns.USER_ID.value];
+                this.email = account[AccountColumns.EMAIL.value];
+                this.username = account[AccountColumns.USERNAME.value];
+                this.password = account[AccountColumns.PASSWORD.value];
                 //check if payment details saved
-                if (!Account[AccountColumns.PAYMENT_DETAILS.value].equals("null"))
+                if (!account[AccountColumns.PAYMENT_DETAILS.value].equals("null"))
                 {
-                    String[] paymentDetails = Account[AccountColumns.PAYMENT_DETAILS.value].split("-");
+                    String[] paymentDetails = account[AccountColumns.PAYMENT_DETAILS.value].split("-");
                     this.paymentDetails.put("cardNumber", paymentDetails[0]);
                     this.paymentDetails.put("cardDate", paymentDetails[1]);
                     this.paymentDetails.put("holderName", paymentDetails[2]);
                 }
-                float balance = Float.parseFloat(Account[AccountColumns.BALANCE.value]);
-                float score = Float.parseFloat(Account[AccountColumns.SCORE.value]);
+                float balance = Float.parseFloat(account[AccountColumns.BALANCE.value]);
+                float score = Float.parseFloat(account[AccountColumns.SCORE.value]);
+                //we need to round value. sometimes java have vague calculations and sets many symbols after a decimal point
                 this.balance = Math.round(balance * 100)/100.0f;
                 this.score = Math.round(score * 100)/100.0f;
                 break;
@@ -325,9 +322,10 @@ public class Account
     }
     protected void saveAccountToFile() throws IOException
     {
-        FileWriter writer = new FileWriter(this.filename, true);
+        FileWriter writer = new FileWriter(this.accountFile, true);
 
         //https://www.geeksforgeeks.org/stream-anymatch-java-examples/
+        //we need to check whether any of the element is not set, so required values are not empty in database
         boolean readyToWrite = !Arrays.asList(this.username, this.email, this.password).stream().anyMatch(element -> element == null);
 
         if (!readyToWrite)
@@ -335,6 +333,7 @@ public class Account
             System.out.println("[!] Unable to write data");
             return;
         }
+        //define 2 types of string to write, based on payments details.
         if (this.paymentDetails.size() == 0)
         {
             writer.write(String.format("%s,%s,%s,%s,null,%s,%s\n", this.userId, this.email, this.username, this.password, this.balance,this.score));
@@ -348,21 +347,22 @@ public class Account
         writer.close();
     }
 
+    //this method is used to change values in the database of the current user
     public void updateCredentials() throws IOException
     {
         //create a temp file in order to rewrite
         File tempFile = new File("temp.txt");
         FileWriter tempWriter = new FileWriter(tempFile);
 
-        File accountsFile = new File(this.filename);
-        Scanner scannerAccounts = new Scanner(accountsFile);
-
+        Scanner scannerAccounts = new Scanner(this.accountFile);
+        //explicitly set delimiter to '\n' to make possible to store cardholder name with space
         scannerAccounts.useDelimiter("\n");
         while (scannerAccounts.hasNext())
         {
             String currentLine = scannerAccounts.next();
             String[] account = currentLine.split(",");
 
+            //check if account contains user id
             if (account[AccountColumns.USER_ID.value].equals(this.userId))
             {
                 if (this.paymentDetails.size() == 0)
@@ -384,15 +384,15 @@ public class Account
         scannerAccounts.close();
         tempWriter.close();
         //delete old file
-        accountsFile.delete();
+        this.accountFile.delete();
         //rename temp file to old name
-        tempFile.renameTo(accountsFile);
+        tempFile.renameTo(this.accountFile);
     }
 
-    private int getNumberOfUsersFromFile(String filename) throws FileNotFoundException
+    //based on return of this method we set user id
+    private int getNumberOfUsersFromFile() throws FileNotFoundException
     {
-        File accounts = new File(filename);
-        Scanner sc = new Scanner(accounts);
+        Scanner sc = new Scanner(this.accountFile);
         sc.useDelimiter("\n");
         //skip first row
         sc.next();
