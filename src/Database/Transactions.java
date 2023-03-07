@@ -16,7 +16,7 @@ public class Transactions
     private final Account user;
 
     //constructor for Transactions class. pass instance of user to access its attributes and methods
-    public Transactions(String transactionsFilename, String itemFile, Account user) throws FileNotFoundException
+    public Transactions(String transactionsFilename, String itemFile, Account user)
     {
         this.transactionsFile = new File(transactionsFilename);
         this.itemFile = new File(itemFile);
