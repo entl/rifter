@@ -21,8 +21,7 @@ public class Friends
 
     private ArrayList<HashMap<String, String>> requests = new ArrayList<>();
 
-
-    public Friends(Account user, String friendsFilename, String accountsFilename)
+    public Friends(String friendsFilename, String accountsFilename, Account user)
     {
         //pass instance of Account class to access attributes and methods
         this.user = user;
@@ -84,9 +83,9 @@ public class Friends
                     {
                         //declare temp hashmap to fill it with necessary values such as user_id, username and score
                         HashMap<String, Object> tempHashmap = new HashMap<>();
-                        tempHashmap.put("userId", account[AccountColumns.USER_ID.value]);
-                        tempHashmap.put("username", account[AccountColumns.USERNAME.value]);
-                        tempHashmap.put("score", Float.parseFloat(account[AccountColumns.SCORE.value]));
+                        tempHashmap.put(AccountColumns.USER_ID.name(), account[AccountColumns.USER_ID.value]);
+                        tempHashmap.put(AccountColumns.USERNAME.name(), account[AccountColumns.USERNAME.value]);
+                        tempHashmap.put(AccountColumns.SCORE.name(), Float.parseFloat(account[AccountColumns.SCORE.value]));
 
                         friends.add(tempHashmap);
                         break;
@@ -132,8 +131,8 @@ public class Friends
                     {
                         //declare temp arraylist to fill it with necessary values such as user_id, username and score
                         HashMap<String, String> tempHashmap = new HashMap<>();
-                        tempHashmap.put("userId", account[AccountColumns.USER_ID.value]);
-                        tempHashmap.put("username", account[AccountColumns.USERNAME.value]);
+                        tempHashmap.put(AccountColumns.USER_ID.name(), account[AccountColumns.USER_ID.value]);
+                        tempHashmap.put(AccountColumns.USERNAME.name(), account[AccountColumns.USERNAME.value]);
 
                         requests.add(tempHashmap);
                         break;
@@ -145,15 +144,15 @@ public class Friends
         scannerFriends.close();
     }
 
-    public void sendRequest(String username) throws IOException
+    public boolean sendRequest(String username) throws IOException
     {
         //check whether user already in friends
         for (HashMap<String, Object> friend : friends)
         {
-            if (username.equals(friend.get("username")))
+            if (username.equals(friend.get(AccountColumns.USERNAME.name())))
             {
                 System.out.println("[-] This user is already your friend");
-                return;
+                return false;
             }
         }
 
@@ -170,7 +169,7 @@ public class Friends
             if (account[AccountColumns.USER_ID.value].equals(this.user.getUserId()))
             {
                 System.out.println("[-] You cannot add yourself to friends");
-                return;
+                return false;
             }
 
             //check if record has friend username. We are using enum to indicate index in array
@@ -193,7 +192,7 @@ public class Friends
                         scannerFriends.close();
                         scannerAccounts.close();
                         friendWriter.close();
-                        return;
+                        return false;
                     }
                 }
                 scannerFriends.close();
@@ -211,9 +210,10 @@ public class Friends
         if (!exists)
         {
             System.out.println("[-] User does not exist");
-            return;
+            return false;
         }
         System.out.println("[+] Request is sent");
+        return true;
     }
 
     public void acceptRequest(int position) throws IOException
@@ -232,13 +232,13 @@ public class Friends
             String[] friendship = currentLine.split(",");
 
             //check whether line has friend id, user id, and status pending
-            if (friendship[FriendsColumns.FRIEND_ID.value].equals(this.user.getUserId()) && friendship[FriendsColumns.USER_ID.value].equals(request.get("userId")) && friendship[FriendsColumns.STATUS.value].equals(FriendshipStatus.PENDING.value))
+            if (friendship[FriendsColumns.FRIEND_ID.value].equals(this.user.getUserId()) && friendship[FriendsColumns.USER_ID.value].equals(request.get(AccountColumns.USER_ID.name())) && friendship[FriendsColumns.STATUS.value].equals(FriendshipStatus.PENDING.value))
             {
                 //rewrite line where was status pending
-                tempWriter.write(String.format("%s,%s,%s\n", this.user.getUserId(), request.get("userId"), "accepted"));
+                tempWriter.write(String.format("%s,%s,%s\n", this.user.getUserId(), request.get(AccountColumns.USER_ID.name()), FriendshipStatus.ACCEPTED.value));
                 //write a new line which symmetric to previous.
                 // user id and friend id swapped because friendship is mutual
-                tempWriter.write(String.format("%s,%s,%s\n", request.get("userId"), this.user.getUserId(), "accepted"));
+                tempWriter.write(String.format("%s,%s,%s\n", request.get(AccountColumns.USER_ID.name()), this.user.getUserId(), FriendshipStatus.ACCEPTED.value));
             } else
             {
                 tempWriter.write(currentLine + "\n");
@@ -265,9 +265,9 @@ public class Friends
 
         //create hashmap of current user. This is made to make possible to show user in leaderboard with friends
         HashMap<String, Object> currentUser = new HashMap<>();
-        currentUser.put("userId", "You");
-        currentUser.put("username", user.getUsername());
-        currentUser.put("score", user.getScore());
+        currentUser.put(AccountColumns.USER_ID.name(), "You");
+        currentUser.put(AccountColumns.USERNAME.name(), user.getUsername());
+        currentUser.put(AccountColumns.SCORE.name(), user.getScore());
 
         tempFriends.add(currentUser);
 
@@ -277,7 +277,7 @@ public class Friends
         {
             for (int j = 0; j < n - i - 1; j++)
             {
-                if ((float) tempFriends.get(j).get("score") < (float) tempFriends.get(j + 1).get("score"))
+                if ((float) tempFriends.get(j).get(AccountColumns.SCORE.name()) < (float) tempFriends.get(j + 1).get(AccountColumns.SCORE.name()))
                 {
                     // https://www.geeksforgeeks.org/how-to-swap-two-elements-in-an-arraylist-in-java/
                     Collections.swap(tempFriends, j, j + 1);
