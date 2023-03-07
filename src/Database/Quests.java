@@ -17,12 +17,20 @@ public class Quests
     private ArrayList<HashMap<String, Object>> quests = new ArrayList<>();
 
     //constructor for quests class. pass instance of user to access its attributes and methods
-    public Quests(String questFilename, String userQuestFilename, Account user) throws FileNotFoundException
+    public Quests(String questFilename, String userQuestFilename, Account user)
     {
         this.userQuestFile = new File(userQuestFilename);
         this.questFile = new File(questFilename);
         this.user = user;
-        loadQuests();
+
+        try
+        {
+            loadQuests();
+        }
+        catch (FileNotFoundException e)
+        {
+            System.out.println("[!] Error in loading quests. " + e);
+        }
     }
 
     private void loadQuests() throws FileNotFoundException
