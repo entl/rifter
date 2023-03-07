@@ -39,18 +39,11 @@ public class Account
         return userId;
     }
     //assign unique id to user
-    public void setUserId()
+    public void setUserId() throws FileNotFoundException
     {
-        try
-        {
-            //we assign id based on number of lines
             int lastId = getNumberOfUsersFromFile();
             int newId = lastId + 1;
             this.userId = String.valueOf(newId);
-        } catch (FileNotFoundException e)
-        {
-            System.out.println("[!] Error: " + e);
-        }
     }
 
     public String getEmail()
@@ -58,19 +51,12 @@ public class Account
         return email;
     }
 
-    public boolean setEmail(String email)
+    public boolean setEmail(String email) throws FileNotFoundException
     {
-        try
+        if (validateEmail(email))
         {
-            if (validateEmail(email))
-            {
-                this.email = email;
-                return true;
-            }
-        }
-        catch (FileNotFoundException e)
-        {
-            System.out.println("[!] Error: " + e);
+            this.email = email;
+            return true;
         }
         return false;
     }
@@ -89,8 +75,8 @@ public class Account
         while (sc.hasNext())
         {
             //get values from row
-            String[] Account = sc.next().split(",");
-            String emailFromDatabase = Account[1];
+            String[] account = sc.next().split(",");
+            String emailFromDatabase = account[1];
             if (email.equals(emailFromDatabase))
             {
                 System.out.println("[-] Sorry, this email is already taken");
@@ -175,6 +161,20 @@ public class Account
             return true;
         }
         System.out.println("[-] Password must be at least 8 characters long");
+        return false;
+    }
+
+    public boolean verifyPassword(String password)
+    {
+        //hash password in order to store it securely
+        int hashPassword = password.hashCode();
+        String hashedPassword = String.valueOf(hashPassword);
+
+        if (hashedPassword.equals(this.password))
+        {
+            return true;
+        }
+        System.out.println("[-] Passwords do not match");
         return false;
     }
 
@@ -286,9 +286,14 @@ public class Account
     }
     //this function loads account details from database based on this.username
 
-    public void loadAccountFromFile(String username) throws FileNotFoundException
+    public boolean loadAccountFromFile(String email, String password) throws FileNotFoundException
     {
         Scanner sc = new Scanner(this.accountFile);
+
+        //hash password in order to store it securely
+        int hashPassword = password.hashCode();
+        String hashedPassword = String.valueOf(hashPassword);
+
         //explicitly set delimiter to '\n' to make possible to store cardholder name with space
         sc.useDelimiter("\n");
         while (sc.hasNext())
@@ -296,7 +301,7 @@ public class Account
             //get values from row
             String[] account = sc.next().split(",");
             //check whether row has appropriate username
-            if (Arrays.toString(account).contains(username))
+            if (account[AccountColumns.EMAIL.value].equals(email) && account[AccountColumns.PASSWORD.value].equals(hashedPassword))
             {
                 this.userId = account[AccountColumns.USER_ID.value];
                 this.email = account[AccountColumns.EMAIL.value];
@@ -315,12 +320,16 @@ public class Account
                 //we need to round value. sometimes java have vague calculations and sets many symbols after a decimal point
                 this.balance = Math.round(balance * 100)/100.0f;
                 this.score = Math.round(score * 100)/100.0f;
-                break;
+
+                sc.close();
+                return true;
             }
         }
         sc.close();
+        System.out.println("[-] Sorry, email or password are incorrect");
+        return false;
     }
-    protected void saveAccountToFile() throws IOException
+    public void saveAccountToFile() throws IOException
     {
         FileWriter writer = new FileWriter(this.accountFile, true);
 
