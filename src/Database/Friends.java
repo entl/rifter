@@ -17,8 +17,8 @@ public class Friends
     private final Account user;
 
     //https://www.geeksforgeeks.org/creating-an-arraylist-with-multiple-object-types-in-java/
-    private ArrayList<HashMap<String, Object>> friends = new ArrayList<>();
 
+    private ArrayList<HashMap<String, Object>> friends = new ArrayList<>();
     private ArrayList<HashMap<String, String>> requests = new ArrayList<>();
 
     public Friends(String friendsFilename, String accountsFilename, Account user)
@@ -256,6 +256,49 @@ public class Friends
         this.requests.clear();
         //load again friends to fill friends array
         loadFriends();
+    }
+
+    public void deleteFriend(int position) throws IOException
+    {
+        HashMap<String, Object> friend = this.friends.get(position);
+
+        //create a temp file in order to rewrite friends.csv
+        File tempFile = new File("temp.txt");
+        FileWriter tempWriter = new FileWriter(tempFile);
+
+        Scanner scannerFriends = new Scanner(this.friendsFile);
+
+        while (scannerFriends.hasNext())
+        {
+            String currentLine = scannerFriends.next();
+            String[] friendship = currentLine.split(",");
+            System.out.println(friendship[FriendsColumns.USER_ID.value] + ":" + friendship[FriendsColumns.FRIEND_ID.value]);
+            //here we are finding line which has our id and id of friend to delete
+            if (friendship[FriendsColumns.USER_ID.value].equals(this.user.getUserId()) && friendship[FriendsColumns.FRIEND_ID.value].equals(friend.get(AccountColumns.USER_ID.name())))
+            {
+            }
+            //here we are finding line which has FRIEND id and OURS
+            else if (friendship[FriendsColumns.FRIEND_ID.value].equals(this.user.getUserId()) && friendship[FriendsColumns.USER_ID.value].equals(friend.get(AccountColumns.USER_ID.name())))
+            {
+            }
+            else
+            {
+                tempWriter.write(currentLine + "\n");
+            }
+        }
+        scannerFriends.close();
+        tempWriter.close();
+        //delete old file
+        friendsFile.delete();
+        //rename temp file to old name
+        tempFile.renameTo(friendsFile);
+
+        //we need to reset array in order to apply changes
+        this.friends.clear();
+        this.requests.clear();
+        //load again friends to fill friends array
+        loadFriends();
+        System.exit(0);
     }
 
     public ArrayList<HashMap<String, Object>> getLeaderBoard(Account user)
