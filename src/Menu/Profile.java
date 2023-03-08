@@ -14,7 +14,7 @@ public class Profile
     public static void displayFriends(Friends friends)
     {
         ArrayList<HashMap<String, Object>> friendsList = friends.getFriends();
-        System.out.printf("%-4s.%-20s%-20s\n", "No.", "Username", "Score");
+        System.out.printf("\n%-4s.%-20s%-20s\n", "No.", "Username", "Score");
         for (int i = 0; i < friendsList.size(); i++)
         {
             System.out.printf("%-4s%-20s%-20s\n", i, friendsList.get(i).get(AccountColumns.USERNAME.name()), friendsList.get(i).get(AccountColumns.SCORE.name()));
@@ -24,7 +24,7 @@ public class Profile
     public static void displayRequests(Friends friends)
     {
         ArrayList<HashMap<String, String>> requests = friends.getRequests();
-        System.out.printf("%-4s.%-20s%-20s\n", "No.", "Username", "Status");
+        System.out.printf("\n%-4s.%-20s%-20s\n", "No.", "Username", "Status");
         for (int i = 0; i < requests.size(); i++)
         {
             System.out.printf("%-4s%-20s%-20s\n", i, requests.get(i).get(AccountColumns.USERNAME.name()), FriendshipStatus.PENDING.value);
@@ -35,7 +35,7 @@ public class Profile
     {
          while (true)
          {
-             System.out.println("[+] Enter , to leave");
+             System.out.println("\n[+] Enter , to leave");
              System.out.print("[+] Enter username: ");
              String username = scannerInput.nextLine();
              if (username.equals(","))
