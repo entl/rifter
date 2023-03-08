@@ -106,8 +106,6 @@ public class Transactions
                 break;
             }
         }
-
-        inputScanner.close();
     }
 
     private void createPaymentMethod(HashMap<String, String> paymentDetails, Scanner inputScanner) throws IOException
@@ -141,6 +139,22 @@ public class Transactions
         }
     }
 
+    public void topUpApplePay() throws IOException
+    {
+        Scanner inputScanner = new Scanner(System.in);
+        //validation of amount that user has inputted
+        while (true)
+        {
+            System.out.print("[+] Enter amount:");
+            float amount = inputScanner.nextFloat();
+
+            if (addMoney(amount))
+            {
+                saveTopUp(amount);
+                break;
+            }
+        }
+    }
     private boolean addMoney(float amount) throws IOException
     {
         if (amount > 0)
@@ -171,6 +185,8 @@ public class Transactions
         //skip column names
         scannerPurchases.next();
 
+        ArrayList<HashMap<String, Object>> items = getItems();
+
         while (scannerPurchases.hasNext())
         {
             String currentLine = scannerPurchases.next().replace("\r", "");
@@ -182,7 +198,15 @@ public class Transactions
                 HashMap<String,Object> temp = new HashMap<>();
 
                 temp.put("transactionId", record[TransactionsColumns.TRANSACTION_ID.value]);
-                temp.put("itemId", record[TransactionsColumns.ITEM_ID.value]); //change to item name
+                for (HashMap<String, Object> item :items)
+                {
+                    if (item.get("itemId").equals(record[TransactionsColumns.ITEM_ID.value]))
+                    {
+                        temp.put("itemName", item.get("name"));
+                        temp.put("itemPrice", item.get("price"));
+                    }
+                }
+                temp.put("quantity", record[TransactionsColumns.QUANTITY.value]);
                 temp.put("amount", record[TransactionsColumns.AMOUNT.value]);
                 temp.put("transactionDate", record[TransactionsColumns.TRANSACTION_DATE.value]);
 
@@ -208,7 +232,7 @@ public class Transactions
                 //check stock
                 if (quantity > Integer.parseInt(item[ItemsColumns.STOCK.value]))
                 {
-                    System.out.println("[-] Sorry, we do not have so many items");
+                    System.out.println("[-] Sorry, we do not have so many items in stock");
                     return;
                 }
 
@@ -237,7 +261,6 @@ public class Transactions
                 break;
             }
         }
-
     }
 
     public void updateItemFile(String item, String itemId) throws IOException
@@ -255,8 +278,6 @@ public class Transactions
             //after investigation, I suppose that we need to replace "\r" only when we manually add values to files
             String currentLine = scannerItems.next().replace("\r", "");
             String[] currentItem = currentLine.split(",");
-
-            System.out.println(currentItem[ItemsColumns.ITEM_ID.value].equals(itemId));
 
             //check whether line has friend id, user id, and status pending
             if (currentItem[ItemsColumns.ITEM_ID.value].equals(itemId))
