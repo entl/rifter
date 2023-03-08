@@ -5,13 +5,11 @@ import Menu.Profile;
 import Menu.Settings;
 import Menu.Wallet;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
 
-public class Main {
-
-
+public class Main
+{
     public static Scanner scannerInput = new Scanner(System.in);
     //create class object here to make them global
     public static GameWindow gameWindow = new GameWindow();
@@ -27,7 +25,7 @@ public class Main {
         System.out.printf("%17s%n", "RIFTER");
         System.out.println("-".repeat(30));
 
-        System.out.print("1. Register\n2. Login\n\n[+] Choose one: ");
+        System.out.print("1. Register\n2. Login\n3. Forgot Password\n\n[+] Choose one: ");
         String userChoice = scannerInput.nextLine();
         try
         {
@@ -43,6 +41,10 @@ public class Main {
                 {
                     if (Landing.login(user, scannerInput))
                         home();
+                }
+                case "3" ->
+                {
+                    //!!!!!!!!!!!!!!!!!!!!!!!!TO DO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 }
                 default -> System.out.println("[-] Wrong choice");
             }
@@ -71,7 +73,6 @@ public class Main {
                     if (gameWindow.getIsOpen())
                     {
                         System.out.println("[!] It seems game already opened");
-                        pressToContinue();
                     }
                     else
                     {
@@ -89,7 +90,6 @@ public class Main {
 
     public static void menuSettings()
     {
-        //!!!!!!!!!!!!!!!!!!!!!!!!TO DO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         clearScreen();
         System.out.print("1. Help\n2. Change password\n3. Logout\n\n[+] Choose one: ");
         String userChoice = scannerInput.nextLine();
@@ -112,8 +112,24 @@ public class Main {
 
     public static void menuWallet()
     {
-        //!!!!!!!!!!!!!!!!!!!!!!!!TO DO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        System.out.println("1. Purchase history\n2. Top up wallet");
+        clearScreen();
+        System.out.print("1. Purchase history\n2. Purchase item\n3. Top up wallet\n4. Top up history\n\n[+] Choose one: ");
+        String userChoice = scannerInput.nextLine();
+        try
+        {
+            switch (userChoice)
+            {
+                case "1" -> Wallet.purchaseHistory(transactions);
+                case "2" -> Wallet.buyItem(transactions, scannerInput);
+                case "3" -> Wallet.topUp(transactions, scannerInput);
+                case "4" -> Wallet.topUpHistory(transactions);
+                default -> System.out.println("[-] No such option");
+            }
+        }
+        catch (IOException e)
+        {
+            System.out.println("[!] Error: " + e);;
+        }
     }
 
     public static void menuProfile()
@@ -121,23 +137,20 @@ public class Main {
         clearScreen();
         System.out.print("1. Display friends\n2. Display requests\n3. Add friend\n4. Delete Friend\n\n[+] Choose one: ");
         String userChoice = scannerInput.nextLine();
-        switch (userChoice)
+        try
         {
-            case "1" -> Profile.displayFriends(friends);
-            case "2" -> Profile.displayRequests(friends);
-            case "3" ->
+            switch (userChoice)
             {
-                try
-                {
-                    Profile.addFriend(friends, scannerInput);
-                }
-                catch (IOException e)
-                {
-                    System.out.println("[!] Error: " + e);;
-                }
+                case "1" -> Profile.displayFriends(friends);
+                case "2" -> Profile.displayRequests(friends);
+                case "3" -> Profile.addFriend(friends, scannerInput);
+                case "4" -> Profile.deleteFriend(friends, scannerInput);
+                default -> System.out.println("[-] No such option");
             }
-            case "4" -> Profile.deleteFriend(friends);
-            default -> System.out.println("[-] No such option");
+        }
+        catch (IOException e)
+        {
+            System.out.println("[!] Error: " + e);;
         }
     }
 
