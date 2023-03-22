@@ -45,9 +45,9 @@ public class Transactions
                 //create temp hashmap to add it later to the arraylist
                 HashMap<String,Object> temp = new HashMap<>();
 
-                temp.put("transactionId", record[TransactionsColumns.TRANSACTION_ID.value]);
-                temp.put("amount", record[TransactionsColumns.AMOUNT.value]);
-                temp.put("transactionDate", record[TransactionsColumns.TRANSACTION_DATE.value]);
+                temp.put(TransactionsColumns.TRANSACTION_ID.name(), record[TransactionsColumns.TRANSACTION_ID.value]);
+                temp.put(TransactionsColumns.AMOUNT.name(), record[TransactionsColumns.AMOUNT.value]);
+                temp.put(TransactionsColumns.TRANSACTION_DATE.name(), record[TransactionsColumns.TRANSACTION_DATE.value]);
 
                 topUps.add(temp);
             }
@@ -197,18 +197,18 @@ public class Transactions
             {
                 HashMap<String,Object> temp = new HashMap<>();
 
-                temp.put("transactionId", record[TransactionsColumns.TRANSACTION_ID.value]);
+                temp.put(TransactionsColumns.TRANSACTION_ID.name(), record[TransactionsColumns.TRANSACTION_ID.value]);
                 for (HashMap<String, Object> item :items)
                 {
-                    if (item.get("itemId").equals(record[TransactionsColumns.ITEM_ID.value]))
+                    if (item.get(ItemsColumns.ITEM_ID.name()).equals(record[TransactionsColumns.ITEM_ID.value]))
                     {
-                        temp.put("itemName", item.get("name"));
-                        temp.put("itemPrice", item.get("price"));
+                        temp.put(ItemsColumns.NAME.name(), item.get(ItemsColumns.NAME.name()));
+                        temp.put(ItemsColumns.PRICE.name(), item.get(ItemsColumns.PRICE.name()));
                     }
                 }
-                temp.put("quantity", record[TransactionsColumns.QUANTITY.value]);
-                temp.put("amount", record[TransactionsColumns.AMOUNT.value]);
-                temp.put("transactionDate", record[TransactionsColumns.TRANSACTION_DATE.value]);
+                temp.put(TransactionsColumns.QUANTITY.name(), record[TransactionsColumns.QUANTITY.value]);
+                temp.put(TransactionsColumns.AMOUNT.name(), record[TransactionsColumns.AMOUNT.value]);
+                temp.put(TransactionsColumns.TRANSACTION_DATE.name(), record[TransactionsColumns.TRANSACTION_DATE.value]);
 
                 purchases.add(temp);
             }
@@ -223,6 +223,11 @@ public class Transactions
         //use \n to avoid issues with spaces
         scannerItems.useDelimiter("\n");
         scannerItems.next();
+        if (quantity <= 0)
+        {
+            System.out.println("[-] Incorrect quantity");
+            return;
+        }
         while (scannerItems.hasNext())
         {
             //get item values separately
@@ -258,9 +263,10 @@ public class Transactions
                 //update item values in the file
                 updateItemFile(updatedItem, item[ItemsColumns.ITEM_ID.value]);
                 savePurchase(item[ItemsColumns.ITEM_ID.value], quantity, toPay);
-                break;
+                return;
             }
         }
+        System.out.println("[-] No item with such id");
     }
 
     public void updateItemFile(String item, String itemId) throws IOException
@@ -322,13 +328,12 @@ public class Transactions
             String[] item = scannerItems.next().replace("\r", "").split(",");
             HashMap<String, Object> tempItem = new HashMap<>();
 
-            tempItem.put("itemId", item[ItemsColumns.ITEM_ID.value]);
-            tempItem.put("company", item[ItemsColumns.COMPANY_NAME.value]);
-            tempItem.put("name", item[ItemsColumns.NAME.value]);
-            tempItem.put("price", Float.parseFloat(item[ItemsColumns.PRICE.value]));
-            tempItem.put("stock", Integer.parseInt(item[ItemsColumns.STOCK.value]));
-            tempItem.put("description", item[ItemsColumns.DESCRIPTION.value]);
-
+            tempItem.put(ItemsColumns.ITEM_ID.name(), item[ItemsColumns.ITEM_ID.value]);
+            tempItem.put(ItemsColumns.COMPANY_NAME.name(), item[ItemsColumns.COMPANY_NAME.value]);
+            tempItem.put(ItemsColumns.NAME.name(), item[ItemsColumns.NAME.value]);
+            tempItem.put(ItemsColumns.PRICE.name(), Float.parseFloat(item[ItemsColumns.PRICE.value]));
+            tempItem.put(ItemsColumns.STOCK.name(), Integer.parseInt(item[ItemsColumns.STOCK.value]));
+            tempItem.put(ItemsColumns.DESCRIPTION.name(), item[ItemsColumns.DESCRIPTION.value]);
             items.add(tempItem);
         }
 
