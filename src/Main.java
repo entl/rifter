@@ -1,3 +1,4 @@
+//necessary imports from packages
 import Database.*;
 import Game.GameWindow;
 import Menu.Landing;
@@ -5,13 +6,15 @@ import Menu.Profile;
 import Menu.Settings;
 import Menu.Wallet;
 
+//imports of java packages
 import java.io.IOException;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Main
 {
+    //create class instances here to make them global
     public static Scanner scannerInput = new Scanner(System.in);
-    //create class object here to make them global
     public static GameWindow gameWindow = new GameWindow();
     public static Account user = new Account(Constants.ACCOUNTS_CSV);
     public static Transactions transactions;
@@ -20,43 +23,42 @@ public class Main
 
     public static void main(String[] args)
     {
-//        gameWindow.start();
-        System.out.println("-".repeat(30));
-        System.out.printf("%17s%n", "RIFTER");
-        System.out.println("-".repeat(30));
-
-        System.out.print("1. Register\n2. Login\n3. Forgot Password\n\n[+] Choose one: ");
-        String userChoice = scannerInput.nextLine();
-        try
+        while (true)
         {
-            switch (userChoice)
+            //display logo
+            System.out.println("-".repeat(30));
+            System.out.printf("%17s%n", "RIFTER");
+            System.out.println("-".repeat(30));
+            System.out.print("1. Register\n2. Login\n3. Forgot Password\n4. Exit\n\n[+] Choose one: ");
+            String userChoice = scannerInput.nextLine();
+            try
             {
-                case "1" ->
+                switch (userChoice)
                 {
-                    if (Landing.register(user, scannerInput))
+                    case "1" -> Landing.register(user, scannerInput);
+                    case "2" ->
+                    {
                         if (Landing.login(user, scannerInput))
                             home();
+                    }
+                    case "3" ->
+                    {
+                        //!!!!!!!!!!!!!!!!!!!!!!!!TO DO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    }
+                    case "4" -> System.exit(0);
+                    default -> System.out.println("[-] Wrong choice");
                 }
-                case "2" ->
-                {
-                    if (Landing.login(user, scannerInput))
-                        home();
-                }
-                case "3" ->
-                {
-                    //!!!!!!!!!!!!!!!!!!!!!!!!TO DO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                }
-                default -> System.out.println("[-] Wrong choice");
             }
-        }
-        catch(IOException e)
-        {
-            System.out.println("[!] Error: " + e);
+            catch(IOException e)
+            {
+                System.out.println("[!] Error: " + e);
+            }
         }
     }
 
     public static void home()
     {
+        //after log in assign create instances based on user object
         transactions = new Transactions(Constants.TRANSACTIONS_CSV, Constants.ITEMS_FILE, user);
         friends = new Friends(Constants.FRIENDS_CSV, Constants.ACCOUNTS_CSV, user);
         quests = new Quests(Constants.QUESTS_CSV, Constants.USES_QUESTS_CSV, user);
@@ -64,24 +66,31 @@ public class Main
         {
             clearScreen();
 
-            System.out.print("1. Map\n2. Settings\n3. Wallet\n4. Profile\n\n[+] Choose one: ");
+            System.out.print("1. Map\n2. Settings\n3. Wallet\n4. Profile\n5. Exit\n\n[+] Choose one: ");
             String userChoice = scannerInput.nextLine();
             switch (userChoice)
             {
                 case "1" ->
                 {
+                    //check whether game is opened already
                     if (gameWindow.getIsOpen())
                     {
                         System.out.println("[!] It seems game already opened");
                     }
                     else
                     {
-                        gameWindow.start();
+                        gameWindow.start(quests, user);
+                        while (gameWindow.getIsOpen())
+                        {
+                            System.out.println("[+] Close the game and press any key to continue...");
+                            scannerInput.nextLine();
+                        }
                     }
                 }
                 case "2" -> menuSettings();
                 case "3" -> menuWallet();
                 case "4" -> menuProfile();
+                case "5" -> System.exit(0);
                 default -> System.out.println("[-] No such option");
             }
             pressToContinue();
@@ -91,7 +100,8 @@ public class Main
     public static void menuSettings()
     {
         clearScreen();
-        System.out.print("1. Help\n2. Change password\n3. Logout\n\n[+] Choose one: ");
+
+        System.out.print("1. Help\n2. Change password\n3. Logout\n4. Back\n\n[+] Choose one: ");
         String userChoice = scannerInput.nextLine();
 
         try
@@ -101,6 +111,10 @@ public class Main
                 case "1" -> Settings.help(scannerInput);
                 case "2" -> Settings.changePassword(scannerInput, user);
                 case "3" -> Settings.logout();
+                case "4" ->
+                {
+                    return;
+                }
                 default -> System.out.println("[-] No such option");
             }
         }
@@ -113,8 +127,10 @@ public class Main
     public static void menuWallet()
     {
         clearScreen();
-        System.out.print("1. Purchase history\n2. Purchase item\n3. Top up wallet\n4. Top up history\n\n[+] Choose one: ");
+
+        System.out.print("1. Purchase history\n2. Purchase item\n3. Top up wallet\n4. Top up history\n5. Back\n\n[+] Choose one: ");
         String userChoice = scannerInput.nextLine();
+
         try
         {
             switch (userChoice)
@@ -123,34 +139,57 @@ public class Main
                 case "2" -> Wallet.buyItem(transactions, scannerInput);
                 case "3" -> Wallet.topUp(transactions, scannerInput);
                 case "4" -> Wallet.topUpHistory(transactions);
+                case "5" ->
+                {
+                    return;
+                }
                 default -> System.out.println("[-] No such option");
             }
         }
         catch (IOException e)
         {
             System.out.println("[!] Error: " + e);;
+        }
+        catch (InputMismatchException e)
+        {
+            System.out.println("[!] Incorrect input");
+            //clear buffer
+            scannerInput.nextLine();
         }
     }
 
     public static void menuProfile()
     {
         clearScreen();
-        System.out.print("1. Display friends\n2. Display requests\n3. Add friend\n4. Delete Friend\n\n[+] Choose one: ");
+
+        System.out.print("1. Display friends\n2. Display requests\n3. Add friend\n4. Delete Friend\n5. Display Leaderboard\n6. Back\n\n[+] Choose one: ");
         String userChoice = scannerInput.nextLine();
+
         try
         {
             switch (userChoice)
             {
                 case "1" -> Profile.displayFriends(friends);
-                case "2" -> Profile.displayRequests(friends);
+                case "2" -> Profile.displayRequests(friends, scannerInput);
                 case "3" -> Profile.addFriend(friends, scannerInput);
                 case "4" -> Profile.deleteFriend(friends, scannerInput);
+                case "5" -> Profile.displayLeaderboard(friends);
+                case "6" ->
+                {
+                    return;
+                }
                 default -> System.out.println("[-] No such option");
             }
         }
         catch (IOException e)
         {
             System.out.println("[!] Error: " + e);;
+        }
+        catch (InputMismatchException e)
+        {
+            System.out.println("[!] Incorrect input");
+            //clear buffer
+            scannerInput.nextLine();
         }
     }
 

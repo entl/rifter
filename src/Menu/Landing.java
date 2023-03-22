@@ -41,8 +41,16 @@ public class Landing
             return false;
         }
 
-        user.saveAccountToFile();
+        System.out.print("[+] Choose sex (m,f): ");
+        String sex = sc.nextLine();
+        if (!(sex.equals("m") || sex.equals("f")))
+        {
+            System.out.println("[-] Incorrect input");
+            return false;
+        }
+        user.setSex(sex);
 
+        user.saveAccountToFile();
         return true;
     }
 
@@ -52,10 +60,8 @@ public class Landing
         String email = sc.nextLine();
         System.out.print("[+] Enter password: ");
         String password = sc.nextLine();
-        if (!user.loadAccountFromFile(email, password))
-        {
-            return false;
-        }
-        return true;
+        //return result of the log in
+        return user.loadAccountFromFile(email, password);
     }
+
 }
