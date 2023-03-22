@@ -9,12 +9,16 @@ public class Settings
 {
     public static void help(Scanner scannerInput)
     {
-        System.out.print("\n1. Technical support\n2. FAQ\n[+] Choose one: ");
+        System.out.print("\n1. Technical support\n2. FAQ\n3. Back\n[+] Choose one: ");
         String userChoice = scannerInput.nextLine();
         switch (userChoice)
         {
             case "1" -> technicalSupport();
             case "2" -> faq();
+            case "3" ->
+            {
+                return;
+            }
             default -> System.out.println("[-] No such option");
         }
     }
