@@ -1,6 +1,9 @@
 package Game;
 
+import Database.Account;
+import Database.Quests;
 import Game.Entity.Player;
+import Game.Object.ObjectQuest;
 import Game.Tile.TileManager;
 
 import javax.swing.JPanel;
@@ -8,6 +11,9 @@ import java.awt.*;
 
 public class GamePanel extends JPanel implements Runnable
 {
+    public Quests quests;
+    public Account user;
+    public Player player;
     //Screen settings
     //16x16 size
     final int originalTileSize = 16;
@@ -16,7 +22,7 @@ public class GamePanel extends JPanel implements Runnable
     public final int tileSize = originalTileSize * multiplier;
 
     //screen ratio 9x16 like a mobile phone
-    public final int maxScreenColumn = 25;
+    public final int maxScreenColumn = 9;
     public final int maxScreenRow = 16;
 
     // 432x768 pixels
@@ -24,25 +30,16 @@ public class GamePanel extends JPanel implements Runnable
     public final int screenHeight = tileSize*maxScreenRow;
 
     // world size
-    public final int maxWorldColumn = 30;
-    public final int maxWorldRow = 30;
+    public final int maxWorldColumn = 100;
+    public final int maxWorldRow = 110;
     public final int worldWidth = tileSize * maxWorldColumn;
     public final int worldHeight = tileSize * maxWorldRow;
 
-    // FPS
-    final int FPS = 60;
-
-    TileManager tileManager = new TileManager(this);
-    //used to get user pressed buttons
-    KeyHandler keyHandler = new KeyHandler();
-    //used to create game loop
-    Thread gameThread;
-    //create instance of player
-    //this refers to game panel class
-    public Player player = new Player(this, keyHandler);
-
-    public GamePanel()
+    public GamePanel(Quests quests, Account user)
     {
+        this.user = user;
+        this.quests = quests;
+        this.player = new Player(this, keyHandler, quests, user);
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
         this.setBackground(Color.BLACK);
         //improves rendering performance
@@ -52,6 +49,24 @@ public class GamePanel extends JPanel implements Runnable
         this.setFocusable(true);
     }
 
+    // FPS
+    final int FPS = 240;
+    TileManager tileManager = new TileManager(this);
+    //used to get user pressed buttons
+    KeyHandler keyHandler = new KeyHandler();
+    //used to create game loop
+    Thread gameThread;
+    //'this' refers to game panel class
+    public CollisionChecker collisionChecker = new CollisionChecker(this);
+    //create instance of player
+    public AssetSetter assetSetter = new AssetSetter(this);
+
+    public ObjectQuest[] objects = new ObjectQuest[10];
+
+    public void setupGame(Quests quests)
+    {
+        assetSetter.setObject(quests);
+    }
     public void startGameThread()
     {
         //instantiate thread
@@ -95,6 +110,7 @@ public class GamePanel extends JPanel implements Runnable
     public void update()
     {
         player.update();
+        assetSetter.setObject(quests);
     }
 
 
@@ -109,6 +125,11 @@ public class GamePanel extends JPanel implements Runnable
         Graphics2D graphics2D = (Graphics2D) graphics;
 
         tileManager.draw(graphics2D);
+        for (int i = 0; i < objects.length; i++)
+        {
+            if(objects[i] != null)
+                objects[i].draw(graphics2D, this);
+        }
         player.draw(graphics2D);
 
         //used to release graphics

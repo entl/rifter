@@ -1,5 +1,8 @@
 package Game;
 
+import Database.Account;
+import Database.Quests;
+
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -10,7 +13,7 @@ public class GameWindow
 
     private boolean isOpen;
 
-    public void start()
+    public void start(Quests quests, Account user)
     {
         this.isOpen = true;
 
@@ -27,7 +30,7 @@ public class GameWindow
         });
 
         //add game panel to the window
-        GamePanel gamePanel = new GamePanel();
+        GamePanel gamePanel = new GamePanel(quests, user);
         this.window.add(gamePanel);
 
         //show window
@@ -38,6 +41,7 @@ public class GameWindow
         this.window.toFront();
         this.window.setVisible(true);
 
+        gamePanel.setupGame(quests);
         gamePanel.startGameThread();
 
     }
