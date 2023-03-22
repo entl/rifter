@@ -156,6 +156,12 @@ public class Friends
             }
         }
 
+        if (this.user.getUsername().equals(username))
+        {
+            System.out.println("[-] You cannot add yourself to friends");
+            return false;
+        }
+
         Scanner scannerAccounts = new Scanner(this.accountsFile);
         FileWriter friendWriter = new FileWriter(this.friendsFile, true);
 
@@ -165,12 +171,6 @@ public class Friends
         {
             //get separate values
             String[] account = scannerAccounts.next().split(",");
-
-            if (account[AccountColumns.USER_ID.value].equals(this.user.getUserId()))
-            {
-                System.out.println("[-] You cannot add yourself to friends");
-                return false;
-            }
 
             //check if record has friend username. We are using enum to indicate index in array
             if (account[AccountColumns.USERNAME.value].equals(username))
@@ -272,7 +272,6 @@ public class Friends
         {
             String currentLine = scannerFriends.next();
             String[] friendship = currentLine.split(",");
-            System.out.println(friendship[FriendsColumns.USER_ID.value] + ":" + friendship[FriendsColumns.FRIEND_ID.value]);
             //here we are finding line which has our id and id of friend to delete
             if (friendship[FriendsColumns.USER_ID.value].equals(this.user.getUserId()) && friendship[FriendsColumns.FRIEND_ID.value].equals(friend.get(AccountColumns.USER_ID.name())))
             {
@@ -301,7 +300,7 @@ public class Friends
         System.exit(0);
     }
 
-    public ArrayList<HashMap<String, Object>> getLeaderBoard(Account user)
+    public ArrayList<HashMap<String, Object>> getLeaderBoard()
     {
         //we need to create temp variable in order to pass by value and do not change initial array
         ArrayList<HashMap<String, Object>> tempFriends = this.friends;
@@ -309,8 +308,8 @@ public class Friends
         //create hashmap of current user. This is made to make possible to show user in leaderboard with friends
         HashMap<String, Object> currentUser = new HashMap<>();
         currentUser.put(AccountColumns.USER_ID.name(), "You");
-        currentUser.put(AccountColumns.USERNAME.name(), user.getUsername());
-        currentUser.put(AccountColumns.SCORE.name(), user.getScore());
+        currentUser.put(AccountColumns.USERNAME.name(), this.user.getUsername());
+        currentUser.put(AccountColumns.SCORE.name(), this.user.getScore());
 
         tempFriends.add(currentUser);
 
