@@ -7,27 +7,50 @@ import Database.FriendshipStatus;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Profile
 {
     public static void displayFriends(Friends friends)
     {
+        //get friends
         ArrayList<HashMap<String, Object>> friendsList = friends.getFriends();
-        System.out.printf("\n%-4s.%-20s%-20s\n", "No.", "Username", "Score");
+        System.out.printf("\n%-4s.%-20s%-8s\n", "No.", "Username", "Score");
         for (int i = 0; i < friendsList.size(); i++)
         {
-            System.out.printf("%-4s%-20s%-20s\n", i, friendsList.get(i).get(AccountColumns.USERNAME.name()), friendsList.get(i).get(AccountColumns.SCORE.name()));
+            System.out.printf("%-4s%-20s%-8s\n", i, friendsList.get(i).get(AccountColumns.USERNAME.name()), friendsList.get(i).get(AccountColumns.SCORE.name()));
         }
     }
 
-    public static void displayRequests(Friends friends)
+    public static void displayRequests(Friends friends, Scanner scannerInput) throws IOException, InputMismatchException
     {
+        //get requests
         ArrayList<HashMap<String, String>> requests = friends.getRequests();
-        System.out.printf("\n%-4s.%-20s%-20s\n", "No.", "Username", "Status");
+        System.out.printf("\n%-4s %-20s %-8s\n", "No.", "Username", "Status");
         for (int i = 0; i < requests.size(); i++)
         {
-            System.out.printf("%-4s%-20s%-20s\n", i, requests.get(i).get(AccountColumns.USERNAME.name()), FriendshipStatus.PENDING.value);
+            System.out.printf("%-4s %-20s %-8s\n", i, requests.get(i).get(AccountColumns.USERNAME.name()), "Pending");
+        }
+        while (true)
+        {
+            //suggest user to accept request or leave
+            System.out.println("\n[+] Enter '-1' to leave");
+            System.out.print("[+] Enter No. of the request you would like to accept: ");
+            int position = scannerInput.nextInt();
+            //clear buffer
+            scannerInput.nextLine();
+            if (position == -1)
+            {
+                break;
+            }
+            else if (position > requests.size())
+            {
+                System.out.println("[-] Wrong position");
+                continue;
+            }
+            friends.acceptRequest(position);
+            break;
         }
     }
 
@@ -35,13 +58,14 @@ public class Profile
     {
          while (true)
          {
-             System.out.println("\n[+] Enter , to leave");
+             System.out.println("\n[+] Enter 'q' to leave");
              System.out.print("[+] Enter username: ");
              String username = scannerInput.nextLine();
-             if (username.equals(","))
+             if (username.equals("q"))
              {
                  break;
              }
+             //if request successfully sent break
              if (friends.sendRequest(username)) break;
          }
     }
@@ -49,13 +73,36 @@ public class Profile
     public static void deleteFriend(Friends friends, Scanner scannerInput) throws IOException
     {
         displayFriends(friends);
-        System.out.print("\n[+] Enter ID of friend record to delete: ");
-        int recordId = scannerInput.nextInt();
-        friends.deleteFriend(recordId);
+        while (true)
+        {
+            //suggest user to accept request or leave
+            System.out.println("\n[+] Enter '-1' to leave");
+            System.out.print("[+] Enter No. of the request you would like to accept: ");
+            int recordId = scannerInput.nextInt();
+
+            //clear buffer
+            scannerInput.nextLine();
+            if (recordId == -1)
+            {
+                break;
+            }
+            else if (recordId > friends.getFriends().size())
+            {
+                System.out.println("[-] Wrong position");
+                continue;
+            }
+            friends.deleteFriend(recordId);
+            break;
+        }
     }
 
     public static void displayLeaderboard(Friends friends)
     {
-
+        ArrayList<HashMap<String, Object>> leaders = friends.getLeaderBoard();
+        System.out.printf("\n%-4s %-20s %-8s\n", "No.", "Username", "Score");
+        for (int i = 0; i < leaders.size(); i++)
+        {
+            System.out.printf("%-4s %-20s %-8s\n", i, leaders.get(i).get(AccountColumns.USERNAME.name()), leaders.get(i).get(AccountColumns.SCORE.name()));
+        }
     }
 }
