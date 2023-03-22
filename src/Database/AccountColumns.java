@@ -9,7 +9,8 @@ public enum AccountColumns
     PASSWORD(3),
     PAYMENT_DETAILS(4),
     BALANCE(5),
-    SCORE(6);
+    SCORE(6),
+    SEX(7);
 
     public final int value;
 

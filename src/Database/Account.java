@@ -26,6 +26,7 @@ public class Account
     private HashMap<String, String> paymentDetails = new HashMap<>();
     private float balance;
     private float score;
+    private String sex;
 
     //we need constructor to make possible pass filename when creating an instance
     public Account(String filename)
@@ -114,6 +115,12 @@ public class Account
         if (username.contains(","))
         {
             System.out.println("[-] Please enter username without ','");
+            return false;
+        }
+
+        if (username.length() < 2 || username.length() >= 20)
+        {
+            System.out.println("[-] Username cannot be less then 2 and more than 20 characters long");
             return false;
         }
 
@@ -284,8 +291,18 @@ public class Account
         //we need to round value. sometimes java have vague calculations and sets many symbols after a decimal point
         this.score += Math.round(value * 100)/100.0f;
     }
-    //this function loads account details from database based on this.username
 
+    public void setSex(String sex)
+    {
+        this.sex = sex;
+    }
+
+    public String getSex()
+    {
+        return this.sex;
+    }
+
+    //this function loads account details from database based on this.username
     public boolean loadAccountFromFile(String email, String password) throws FileNotFoundException
     {
         Scanner sc = new Scanner(this.accountFile);
@@ -320,6 +337,7 @@ public class Account
                 //we need to round value. sometimes java have vague calculations and sets many symbols after a decimal point
                 this.balance = Math.round(balance * 100)/100.0f;
                 this.score = Math.round(score * 100)/100.0f;
+                this.sex = account[AccountColumns.SEX.value];
 
                 sc.close();
                 return true;
@@ -345,13 +363,13 @@ public class Account
         //define 2 types of string to write, based on payments details.
         if (this.paymentDetails.size() == 0)
         {
-            writer.write(String.format("%s,%s,%s,%s,null,%s,%s\n", this.userId, this.email, this.username, this.password, this.balance,this.score));
+            writer.write(String.format("%s,%s,%s,%s,null,%s,%s,%s\n", this.userId, this.email, this.username, this.password, this.balance,this.score,this.sex));
         }
         else
         {
-            writer.write(String.format("%s,%s,%s,%s,%s-%s-%s,%s,%s\n", this.userId, this.email, this.username,
+            writer.write(String.format("%s,%s,%s,%s,%s-%s-%s,%s,%s,%s\n", this.userId, this.email, this.username,
                                                                     this.password, paymentDetails.get("cardNumber"), paymentDetails.get("cardDate"),
-                                                                    paymentDetails.get("holderName"), this.balance, this.score));
+                                                                    paymentDetails.get("holderName"), this.balance, this.score, this.sex));
         }
         writer.close();
     }
@@ -376,13 +394,13 @@ public class Account
             {
                 if (this.paymentDetails.size() == 0)
                 {
-                    tempWriter.write(String.format("%s,%s,%s,%s,null,%s,%s\n", this.userId, this.email, this.username, this.password, this.balance,this.score));
+                    tempWriter.write(String.format("%s,%s,%s,%s,null,%s,%s,%s\n", this.userId, this.email, this.username, this.password, this.balance,this.score,this.sex));
                 }
                 else
                 {
-                    tempWriter.write(String.format("%s,%s,%s,%s,%s-%s-%s,%s,%s\n", this.userId, this.email, this.username,
+                    tempWriter.write(String.format("%s,%s,%s,%s,%s-%s-%s,%s,%s,%s\n", this.userId, this.email, this.username,
                             this.password, paymentDetails.get("cardNumber"), paymentDetails.get("cardDate"),
-                            paymentDetails.get("holderName"), this.balance, this.score));
+                            paymentDetails.get("holderName"), this.balance, this.score, this.sex));
                 }
             }
             else
