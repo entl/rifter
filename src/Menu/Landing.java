@@ -84,4 +84,19 @@ public class Landing
         return user.loadAccountFromFile(email, password);
     }
 
+    public static boolean forgotPassword(Account user, Scanner sc) throws FileNotFoundException
+    {
+        System.out.print("[+] Enter email: ");
+        String email = sc.nextLine();
+        System.out.print("[+] Enter new password: ");
+        String password = sc.nextLine();
+        System.out.print("[+] Verify new password: ");
+        String verifyPassword = sc.nextLine();
+        if (password.equals(verifyPassword))
+        {
+            return user.forgotPassword(email, password);
+        }
+        System.out.println("[-] Passwords do not match");
+        return false;
+    }
 }

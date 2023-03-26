@@ -48,7 +48,7 @@ public class Main
                     }
                     case "3" ->
                     {
-                        //!!!!!!!!!!!!!!!!!!!!!!!!TO DO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        Landing.forgotPassword(user, scannerInput);
                     }
                     case "4" -> System.exit(0);
                     default -> System.out.println("[-] Wrong choice");

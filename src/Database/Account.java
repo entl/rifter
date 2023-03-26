@@ -287,7 +287,7 @@ public class Account
     {
         Scanner sc = new Scanner(this.accountFile);
 
-        //hash password in order to store it securely
+        //hash password to compare it with password in database
         int hashPassword = password.hashCode();
         String hashedPassword = String.valueOf(hashPassword);
 
@@ -325,6 +325,69 @@ public class Account
         }
         sc.close();
         System.out.println("[-] Sorry, email or password are incorrect");
+        return false;
+    }
+
+    //allows user to create new password
+    public boolean forgotPassword(String email, String newPassword) throws FileNotFoundException
+    {
+        Scanner scannerAccount = new Scanner(this.accountFile);
+
+        //explicitly set delimiter to '\n' to make possible to store cardholder name with space
+        scannerAccount.useDelimiter("\n");
+        while (scannerAccount.hasNext())
+        {
+            //get values from row
+            String[] account = scannerAccount.next().split(",");
+            //check whether row has appropriate username
+            if (account[AccountColumns.EMAIL.value].equals(email))
+            {
+                this.userId = account[AccountColumns.USER_ID.value];
+                this.email = account[AccountColumns.EMAIL.value];
+                this.username = account[AccountColumns.USERNAME.value];
+                this.password = account[AccountColumns.PASSWORD.value];
+                //check if payment details saved
+                if (!account[AccountColumns.PAYMENT_DETAILS.value].equals("null"))
+                {
+                    String[] paymentDetails = account[AccountColumns.PAYMENT_DETAILS.value].split("-");
+                    this.paymentDetails.put("cardNumber", paymentDetails[0]);
+                    this.paymentDetails.put("cardDate", paymentDetails[1]);
+                    this.paymentDetails.put("holderName", paymentDetails[2]);
+                }
+                float balance = Float.parseFloat(account[AccountColumns.BALANCE.value]);
+                float score = Float.parseFloat(account[AccountColumns.SCORE.value]);
+                //we need to round value. sometimes java have vague calculations and sets many symbols after a decimal point
+                this.balance = Math.round(balance * 100) / 100.0f;
+                this.score = Math.round(score * 100) / 100.0f;
+                this.sex = account[AccountColumns.SEX.value];
+                //check if password meets requirements
+                if (this.setPassword(newPassword))
+                {
+                    try
+                    {
+                        scannerAccount.close();
+                        //update account details
+                        this.updateCredentials();
+                        System.out.println("[+] Password updated successfully");
+                        return true;
+                    } catch (IOException e)
+                    {
+                        System.out.println("[!] Error in changing password");
+                        scannerAccount.close();
+                        return false;
+                    }
+                }
+                //if it does not meet return false
+                else
+                {
+                    scannerAccount.close();
+                    return false;
+                }
+            }
+
+        }
+        scannerAccount.close();
+        System.out.println("[-] Sorry, account not found");
         return false;
     }
 
@@ -368,7 +431,6 @@ public class Account
         {
             String currentLine = scannerAccounts.next();
             String[] account = currentLine.split(",");
-
             //check if account contains user id
             if (account[AccountColumns.USER_ID.value].equals(this.userId))
             {
