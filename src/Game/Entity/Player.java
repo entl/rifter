@@ -50,8 +50,8 @@ public class Player extends Entity
 
     public void setDefaultValues()
     {
-        this.worldX = 1000;
-        this.worldY = 800;
+        this.worldX = 432;
+        this.worldY = 1056;
         this.speed = 1;
     }
 
