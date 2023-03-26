@@ -14,7 +14,7 @@ public enum AccountColumns
 
     public final int value;
 
-    private AccountColumns(int value)
+    AccountColumns(int value)
     {
         this.value = value;
     }

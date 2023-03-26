@@ -1,17 +1,21 @@
 package Game.Entity;
 
+//import local classes
+
 import Database.Account;
 import Database.QuestColumns;
 import Database.Quests;
 import Game.GamePanel;
 import Game.KeyHandler;
 
-import javax.swing.*;
-import java.awt.*;
-import java.io.IOException;
+//import java classes
+import javax.swing.*; //used to load player image
+import java.awt.*; //used to draw player
+import java.io.IOException; //used to work with files
 import java.util.ArrayList;
 import java.util.HashMap;
 
+//inherit base properties from entity class
 public class Player extends Entity
 {
     GamePanel gamePanel;
@@ -29,10 +33,11 @@ public class Player extends Entity
         this.quests = quests;
         this.user = user;
 
-        screenX = gamePanel.screenWidth/2;
-        screenY = gamePanel.screenHeight/2;
+        screenX = gamePanel.screenWidth / 2;
+        screenY = gamePanel.screenHeight / 2;
 
         //create rectangle smaller than player tile
+        //so, we can fit in small room 1x1
         collisionArea = new Rectangle(8, 16, 32, 32);
         collisionAreaDefaultX = 8;
         collisionAreaDefaultY = 16;
@@ -45,11 +50,12 @@ public class Player extends Entity
 
     public void setDefaultValues()
     {
-        this.worldX = 3000;
+        this.worldX = 1000;
         this.worldY = 800;
         this.speed = 1;
     }
 
+    //load player character based on chosen sex
     public void getPlayerImage()
     {
         if (user.getSex().equals("m"))
@@ -66,8 +72,7 @@ public class Player extends Entity
             this.standup = new ImageIcon("res\\player\\standup.png").getImage();
             this.standleft = new ImageIcon("res\\player\\standleft.png").getImage();
             this.standright = new ImageIcon("res\\player\\standright.png").getImage();
-        }
-        else
+        } else
         {
             this.up1 = new ImageIcon("res\\player\\up1_girl.png").getImage();
             this.up2 = new ImageIcon("res\\player\\up2_girl.png").getImage();
@@ -112,32 +117,48 @@ public class Player extends Entity
             this.collisionOn = false;
             this.gamePanel.collisionChecker.checkTile(this);
 
-            //check object collision
-            String objectIndex = gamePanel.collisionChecker.checkObject(this, true);
+            //check quest collision
+            String objectIndex = gamePanel.collisionChecker.checkObject(this);
             try
             {
+                //check that quest is not empty
                 if (!objectIndex.equals(""))
                 {
+                    //get quests to complete
                     ArrayList<HashMap<String, Object>> userQuests = this.quests.getQuests();
-                    for (HashMap<String, Object> quest:userQuests)
+                    for (HashMap<String, Object> quest : userQuests)
                     {
+                        //find correct quest
                         if (quest.get(QuestColumns.QUEST_ID.name()).equals(objectIndex))
                         {
-                            System.out.printf("[+] %s\n",quest.get(QuestColumns.DESCRIPTION.name()));
-                            System.out.printf("[+] You have earned %s and now your balance is %s\n", quest.get(QuestColumns.PRIZE.name()), this.user.getBalance()+ (Float) quest.get(QuestColumns.PRIZE.name()));
+                            System.out.printf("\n[+] %s\n", quest.get(QuestColumns.NAME.name()));
+                            System.out.printf("[+] %s\n", quest.get(QuestColumns.DESCRIPTION.name()));
+                            System.out.printf("[+] You have earned %s and now your balance is %s\n", quest.get(QuestColumns.PRIZE.name()), this.user.getBalance() + (Float) quest.get(QuestColumns.PRIZE.name()));
                         }
                     }
-                    this.quests.addQuestCompleted(objectIndex, this.user);
-                    gamePanel.objects[Integer.parseInt(objectIndex)-1].worldY = -500;
+                    //find quests among other quests in game panel
+                    for (int i = 0; i < gamePanel.objects.length; i++)
+                    {
+                        if (gamePanel.objects[i] == null)
+                        {
+                            continue;
+                        }
+                        if (gamePanel.objects[i].id.equals(objectIndex))
+                        {
+                            //set quest to null
+                            gamePanel.objects[i] = null;
+                            //save to file as completed
+                            this.quests.addQuestCompleted(objectIndex, this.user);
+                        }
+                    }
                 }
-            }
-            catch (IOException e)
+            } catch (IOException e)
             {
                 throw new RuntimeException(e);
             }
 
             //if no collision let player move
-            if(!this.collisionOn)
+            if (!this.collisionOn)
             {
                 switch (direction)
                 {
@@ -149,15 +170,14 @@ public class Player extends Entity
             }
 
             this.spriteCounter++;
-            //every 30 fps change sprite num.
+            //every 60 ticks change sprite num.
             //in order to look like our character walks
-            if (this.spriteCounter > 30)
+            if (this.spriteCounter > 60)
             {
                 if (this.spriteNum == 1)
                 {
                     this.spriteNum = 2;
-                }
-                else if (this.spriteNum == 2)
+                } else if (this.spriteNum == 2)
                 {
                     this.spriteNum = 1;
                 }
@@ -177,6 +197,7 @@ public class Player extends Entity
             }
         }
     }
+
     public void draw(Graphics2D graphics2D)
     {
         //draw walking animation
@@ -232,7 +253,7 @@ public class Player extends Entity
             case "standleft" -> image = this.standleft;
             case "standright" -> image = this.standright;
         }
-        //draw image of player that was chosen in switch case block
+        //draw image of player that was set in switch case block
         graphics2D.drawImage(image, this.screenX, this.screenY, gamePanel.tileSize, gamePanel.tileSize, null);
     }
 }

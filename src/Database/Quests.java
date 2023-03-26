@@ -4,7 +4,6 @@ import java.io.File; //used to open file
 import java.io.FileNotFoundException; //exception for file opening
 import java.io.FileWriter; //used to write into a file
 import java.io.IOException; // exception for writing
-import java.util.Arrays;
 import java.util.HashMap; //used to store quests as key:value
 import java.util.ArrayList; //used to make flexible list of quests
 import java.util.Scanner; //used to read from file
@@ -27,8 +26,7 @@ public class Quests
         try
         {
             loadQuests();
-        }
-        catch (FileNotFoundException e)
+        } catch (FileNotFoundException e)
         {
             System.out.println("[!] Error in loading quests. " + e);
         }
@@ -48,7 +46,8 @@ public class Quests
 
         //skip first line
         scannerUserQuest.next();
-        while(scannerUserQuest.hasNext())
+        //load quests which user have already completed
+        while (scannerUserQuest.hasNext())
         {
             String currentLine = scannerUserQuest.next();
             String[] userQuestRecord = currentLine.split(",");
@@ -61,9 +60,11 @@ public class Quests
             }
         }
         scannerUserQuest.close();
+
         scannerQuest.useDelimiter("\n");
         //skip first line
         scannerQuest.next();
+        //based on completed quests load quests which left
         while (scannerQuest.hasNext())
         {
             String currentLine = scannerQuest.next();
@@ -73,7 +74,7 @@ public class Quests
             //add this quest to complete
             if (!completedQuests.contains(questRecord[QuestColumns.QUEST_ID.value]))
             {
-                HashMap <String, Object> tempHashmap = new HashMap<>();
+                HashMap<String, Object> tempHashmap = new HashMap<>();
                 tempHashmap.put(QuestColumns.QUEST_ID.name(), questRecord[QuestColumns.QUEST_ID.value]);
                 tempHashmap.put(QuestColumns.LOCATIONX.name(), questRecord[QuestColumns.LOCATIONX.value]);
                 tempHashmap.put(QuestColumns.LOCATIONY.name(), questRecord[QuestColumns.LOCATIONY.value]);
@@ -92,7 +93,7 @@ public class Quests
     public void addQuestCompleted(String questId, Account user) throws IOException
     {
         //iterate over each hashmap in array
-        for (HashMap<String, Object> quest:this.quests)
+        for (HashMap<String, Object> quest : this.quests)
         {
             //get exact quest and add its prize to balance and score
             if (quest.get(QuestColumns.QUEST_ID.name()).equals(questId))
@@ -116,6 +117,7 @@ public class Quests
         //call load quests to update quests arraylist
         loadQuests();
     }
+
     public ArrayList<HashMap<String, Object>> getQuests()
     {
         return quests;

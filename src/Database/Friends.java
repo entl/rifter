@@ -156,6 +156,7 @@ public class Friends
             }
         }
 
+        //restrict user to add itself to friends
         if (this.user.getUsername().equals(username))
         {
             System.out.println("[-] You cannot add yourself to friends");
@@ -194,6 +195,15 @@ public class Friends
                         friendWriter.close();
                         return false;
                     }
+                    //check if user we are trying to send request have already sent it to us
+                    else if (friendship[FriendsColumns.USER_ID.value].equals(account[AccountColumns.USER_ID.value]) && friendship[FriendsColumns.FRIEND_ID.value].equals(this.user.getUserId()) && friendship[FriendsColumns.STATUS.value].equals("pending"))
+                    {
+                        System.out.println("[-] This user had sent you a request");
+                        scannerFriends.close();
+                        scannerAccounts.close();
+                        friendWriter.close();
+                        return false;
+                    }
                 }
                 scannerFriends.close();
 
@@ -216,6 +226,7 @@ public class Friends
         return true;
     }
 
+    //accept request based on its position in the quests array
     public void acceptRequest(int position) throws IOException
     {
         HashMap<String, String> request = this.requests.get(position);
@@ -258,6 +269,7 @@ public class Friends
         loadFriends();
     }
 
+    //delete friend based on position in the array
     public void deleteFriend(int position) throws IOException
     {
         HashMap<String, Object> friend = this.friends.get(position);
@@ -275,12 +287,13 @@ public class Friends
             //here we are finding line which has our id and id of friend to delete
             if (friendship[FriendsColumns.USER_ID.value].equals(this.user.getUserId()) && friendship[FriendsColumns.FRIEND_ID.value].equals(friend.get(AccountColumns.USER_ID.name())))
             {
+                continue;
             }
             //here we are finding line which has FRIEND id and OURS
             else if (friendship[FriendsColumns.FRIEND_ID.value].equals(this.user.getUserId()) && friendship[FriendsColumns.USER_ID.value].equals(friend.get(AccountColumns.USER_ID.name())))
             {
-            }
-            else
+                continue;
+            } else
             {
                 tempWriter.write(currentLine + "\n");
             }
@@ -297,7 +310,6 @@ public class Friends
         this.requests.clear();
         //load again friends to fill friends array
         loadFriends();
-        System.exit(0);
     }
 
     public ArrayList<HashMap<String, Object>> getLeaderBoard()

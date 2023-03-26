@@ -1,24 +1,32 @@
+//locate file in the package
 package Game;
+
+//import local classes
 
 import Database.Account;
 import Database.Quests;
 import Game.Entity.Player;
-import Game.Object.ObjectQuest;
+import Game.Object.SuperObject;
 import Game.Tile.TileManager;
 
+//import java classes
 import javax.swing.JPanel;
 import java.awt.*;
 
+//GamePanel class combines all the game logic, gameplay
+//Extends JPanel class to have access to its methods
+//Runnable is necessary to create game thread
 public class GamePanel extends JPanel implements Runnable
 {
     public Quests quests;
     public Account user;
     public Player player;
-    //Screen settings
-    //16x16 size
+
+    //16x16 size of the tile
     final int originalTileSize = 16;
     final int multiplier = 3;
-    //resized tile size to look good on the screen
+
+    //resized tile size to look good on the FullHD screen
     public final int tileSize = originalTileSize * multiplier;
 
     //screen ratio 9x16 like a mobile phone
@@ -26,8 +34,8 @@ public class GamePanel extends JPanel implements Runnable
     public final int maxScreenRow = 16;
 
     // 432x768 pixels
-    public final int screenWidth = tileSize*maxScreenColumn;
-    public final int screenHeight = tileSize*maxScreenRow;
+    public final int screenWidth = tileSize * maxScreenColumn;
+    public final int screenHeight = tileSize * maxScreenRow;
 
     // world size
     public final int maxWorldColumn = 100;
@@ -35,10 +43,12 @@ public class GamePanel extends JPanel implements Runnable
     public final int worldWidth = tileSize * maxWorldColumn;
     public final int worldHeight = tileSize * maxWorldRow;
 
+    //constructor
     public GamePanel(Quests quests, Account user)
     {
         this.user = user;
         this.quests = quests;
+        //create a player
         this.player = new Player(this, keyHandler, quests, user);
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
         this.setBackground(Color.BLACK);
@@ -51,6 +61,7 @@ public class GamePanel extends JPanel implements Runnable
 
     // FPS
     final int FPS = 240;
+    //create instance of the tile to render map and objects
     TileManager tileManager = new TileManager(this);
     //used to get user pressed buttons
     KeyHandler keyHandler = new KeyHandler();
@@ -58,15 +69,20 @@ public class GamePanel extends JPanel implements Runnable
     Thread gameThread;
     //'this' refers to game panel class
     public CollisionChecker collisionChecker = new CollisionChecker(this);
-    //create instance of player
+    //assetSetter used to locate quests on the map and have interaction with them
     public AssetSetter assetSetter = new AssetSetter(this);
 
-    public ObjectQuest[] objects = new ObjectQuest[10];
+    //currently objects refers only to quests. Can be extended to other objects which should have interaction
+    //10 means that on the screen can be up to 10 objects
+    public SuperObject[] objects = new SuperObject[10];
 
+    //load quests to the map
     public void setupGame(Quests quests)
     {
         assetSetter.setObject(quests);
     }
+
+    //starts game thread
     public void startGameThread()
     {
         //instantiate thread
@@ -74,7 +90,8 @@ public class GamePanel extends JPanel implements Runnable
         gameThread.start();
     }
 
-    //game loop
+    //implementation of the game loop
+    //to make possible run game with certain fps 'delta' method is used
     @Override
     public void run()
     {
@@ -106,13 +123,12 @@ public class GamePanel extends JPanel implements Runnable
         }
     }
 
-    //used to updates player position
+    //used to updates player position and reload quests
     public void update()
     {
         player.update();
         assetSetter.setObject(quests);
     }
-
 
 
     //used to draw updated information
@@ -124,17 +140,19 @@ public class GamePanel extends JPanel implements Runnable
         //set to Graphics2D as it has more functions
         Graphics2D graphics2D = (Graphics2D) graphics;
 
+        //draw tiles
         tileManager.draw(graphics2D);
+
+        //draw objects (quests)
         for (int i = 0; i < objects.length; i++)
         {
-            if(objects[i] != null)
-                objects[i].draw(graphics2D, this);
+            if (objects[i] != null) objects[i].draw(graphics2D, this);
         }
+
+        //draw player
         player.draw(graphics2D);
 
         //used to release graphics
         graphics2D.dispose();
     }
-
-
 }

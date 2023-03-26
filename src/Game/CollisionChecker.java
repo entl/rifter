@@ -1,4 +1,7 @@
+//locate in game package
 package Game;
+
+//import local class
 
 import Game.Entity.Entity;
 
@@ -6,11 +9,17 @@ public class CollisionChecker
 {
     GamePanel gamePanel;
 
+    //constructor
     public CollisionChecker(GamePanel gamePanel)
     {
         this.gamePanel = gamePanel;
     }
 
+    /**
+     * Check the collision with the tiles
+     *
+     * @param entity instance of the Entity class used to get player's position
+     */
     public void checkTile(Entity entity)
     {
         //here we get pixels of the entity
@@ -77,37 +86,46 @@ public class CollisionChecker
         }
     }
 
-    public String checkObject(Entity entity, boolean player)
+    /**
+     * Check the collision with the objects like quests
+     *
+     * @param entity instance of the Entity class used to get player's position
+     * @return id of the quest later based on it, we will have interaction with the object
+     */
+    public String checkObject(Entity entity)
     {
         String id = "";
 
         for (int i = 0; i < gamePanel.objects.length; i++)
         {
-            if(gamePanel.objects[i] != null)
+            if (gamePanel.objects[i] != null)
             {
+                //get entity collision area in world dimension (not screen one)
                 entity.collisionArea.x = entity.worldX + entity.collisionArea.x;
                 entity.collisionArea.y = entity.worldY + entity.collisionArea.y;
+                //get entity object position in world dimension (not screen one)
                 gamePanel.objects[i].collisionArea.x = gamePanel.objects[i].worldX + gamePanel.objects[i].collisionArea.x;
                 gamePanel.objects[i].collisionArea.y = gamePanel.objects[i].worldY + gamePanel.objects[i].collisionArea.y;
 
                 switch (entity.direction)
                 {
-                    case "up"->
+                    case "up" ->
                     {
+                        //predict next position
                         entity.collisionArea.y -= entity.speed;
+                        //if player position overlaps object area it means that they have collided
                         if (entity.collisionArea.intersects(gamePanel.objects[i].collisionArea))
                         {
+                            //check whether object has collision (can we go through object or not)
                             if (gamePanel.objects[i].collision)
                             {
                                 entity.collisionOn = true;
                             }
-                            if (player)
-                            {
-                                id = gamePanel.objects[i].id;
-                            }
+                            //set id of the object
+                            id = gamePanel.objects[i].id;
                         }
                     }
-                    case "down"->
+                    case "down" ->
                     {
                         entity.collisionArea.y += entity.speed;
                         if (entity.collisionArea.intersects(gamePanel.objects[i].collisionArea))
@@ -116,13 +134,10 @@ public class CollisionChecker
                             {
                                 entity.collisionOn = true;
                             }
-                            if (player)
-                            {
-                                id = gamePanel.objects[i].id;
-                            }
+                            id = gamePanel.objects[i].id;
                         }
                     }
-                    case "left"->
+                    case "left" ->
                     {
                         entity.collisionArea.x -= entity.speed;
                         if (entity.collisionArea.intersects(gamePanel.objects[i].collisionArea))
@@ -131,10 +146,7 @@ public class CollisionChecker
                             {
                                 entity.collisionOn = true;
                             }
-                            if (player)
-                            {
-                                id = gamePanel.objects[i].id;
-                            }
+                            id = gamePanel.objects[i].id;
                         }
                     }
                     case "right" ->
@@ -146,13 +158,11 @@ public class CollisionChecker
                             {
                                 entity.collisionOn = true;
                             }
-                            if (player)
-                            {
-                                id = gamePanel.objects[i].id;
-                            }
+                            id = gamePanel.objects[i].id;
                         }
                     }
                 }
+                //reset values
                 entity.collisionArea.x = entity.collisionAreaDefaultX;
                 entity.collisionArea.y = entity.collisionAreaDefaultY;
                 gamePanel.objects[i].collisionArea.x = gamePanel.objects[i].collisionAreaDefaultX;

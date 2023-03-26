@@ -1,9 +1,12 @@
+//locate file in package
 package Menu;
+
+//import local classes
 
 import Database.AccountColumns;
 import Database.Friends;
-import Database.FriendshipStatus;
 
+//import java classes
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,6 +15,11 @@ import java.util.Scanner;
 
 public class Profile
 {
+    /**
+     * Displays friends list of the current user
+     *
+     * @param friends instance of the Friends class of the current user
+     */
     public static void displayFriends(Friends friends)
     {
         //get friends
@@ -23,6 +31,12 @@ public class Profile
         }
     }
 
+    /**
+     * Displays list of friend requests for the current user
+     *
+     * @param friends      instance of the Friends class of the current user
+     * @param scannerInput is an instance of Scanner class. We pass it as argument to avoid NoSuchElementException.
+     */
     public static void displayRequests(Friends friends, Scanner scannerInput) throws IOException, InputMismatchException
     {
         //get requests
@@ -40,11 +54,10 @@ public class Profile
             int position = scannerInput.nextInt();
             //clear buffer
             scannerInput.nextLine();
-            if (position == -1)
+            if (position <= -1)
             {
                 break;
-            }
-            else if (position > requests.size())
+            } else if (position > requests.size())
             {
                 System.out.println("[-] Wrong position");
                 continue;
@@ -54,22 +67,34 @@ public class Profile
         }
     }
 
+    /**
+     * Adding a friend based on username
+     *
+     * @param friends      instance of the Friends class of the current user
+     * @param scannerInput is an instance of Scanner class. We pass it as argument to avoid NoSuchElementException.
+     */
     public static void addFriend(Friends friends, Scanner scannerInput) throws IOException
     {
-         while (true)
-         {
-             System.out.println("\n[+] Enter 'q' to leave");
-             System.out.print("[+] Enter username: ");
-             String username = scannerInput.nextLine();
-             if (username.equals("q"))
-             {
-                 break;
-             }
-             //if request successfully sent break
-             if (friends.sendRequest(username)) break;
-         }
+        while (true)
+        {
+            System.out.println("\n[+] Enter 'q' to leave");
+            System.out.print("[+] Enter username: ");
+            String username = scannerInput.nextLine();
+            if (username.equals("q"))
+            {
+                break;
+            }
+            //if request successful break
+            if (friends.sendRequest(username)) break;
+        }
     }
 
+    /**
+     * Deletes a friend based on selected record id
+     *
+     * @param friends      instance of the Friends class of the current user
+     * @param scannerInput is an instance of Scanner class. We pass it as argument to avoid NoSuchElementException.
+     */
     public static void deleteFriend(Friends friends, Scanner scannerInput) throws IOException
     {
         displayFriends(friends);
@@ -85,8 +110,7 @@ public class Profile
             if (recordId == -1)
             {
                 break;
-            }
-            else if (recordId > friends.getFriends().size())
+            } else if (recordId > friends.getFriends().size())
             {
                 System.out.println("[-] Wrong position");
                 continue;
@@ -96,6 +120,11 @@ public class Profile
         }
     }
 
+    /**
+     * Displays leaderboard
+     *
+     * @param friends instance of the Friends class of the current user
+     */
     public static void displayLeaderboard(Friends friends)
     {
         ArrayList<HashMap<String, Object>> leaders = friends.getLeaderBoard();

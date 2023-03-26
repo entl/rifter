@@ -14,7 +14,7 @@ import java.util.regex.Pattern; //used to create pattern which is appropriate fo
 public class Account
 {
     //database file with accounts
-    private File accountFile;
+    private final File accountFile;
 
     //class attributes represent columns in database
     //they have private modifiers because we will access them by using getters and setters
@@ -22,7 +22,7 @@ public class Account
     private String email;
     private String username;
     private String password;
-    //use hashmap in order to store card details more convenient
+    //use hashmap in order to store card details more conveniently
     private HashMap<String, String> paymentDetails = new HashMap<>();
     private float balance;
     private float score;
@@ -39,22 +39,19 @@ public class Account
     {
         return userId;
     }
+
     //assign unique id to user
     public void setUserId() throws FileNotFoundException
     {
-            int lastId = getNumberOfUsersFromFile();
-            int newId = lastId + 1;
-            this.userId = String.valueOf(newId);
+        int lastId = getNumberOfUsersFromFile();
+        int newId = lastId + 1;
+        this.userId = String.valueOf(newId);
     }
 
-    public String getEmail()
-    {
-        return email;
-    }
 
     public boolean setEmail(String email) throws FileNotFoundException
     {
-        if (validateEmail(email))
+        if (validateEmail(email.toLowerCase()))
         {
             this.email = email;
             return true;
@@ -101,7 +98,7 @@ public class Account
 
     public boolean setUsername(String username) throws FileNotFoundException
     {
-        if (validateUserName(username))
+        if (validateUserName(username.toLowerCase()))
         {
             this.username = username;
             return true;
@@ -142,11 +139,6 @@ public class Account
         sc.close();
 
         return true;
-    }
-
-    public String getPassword()
-    {
-        return password;
     }
 
     public boolean setPassword(String password)
@@ -240,14 +232,12 @@ public class Account
             if (Integer.parseInt(cardDate[1]) >= currentYear && Integer.parseInt(cardDate[0]) >= currentMonth)
             {
                 return true;
-            }
-            else
+            } else
             {
                 System.out.println("[-] Card has expired");
                 return false;
             }
-        }
-        catch (NumberFormatException e)
+        } catch (NumberFormatException e)
         {
             System.out.println("[!] Error: " + e);
             return false;
@@ -259,21 +249,16 @@ public class Account
         return balance;
     }
 
-    public void setBalance(float balance)
-    {
-        this.balance = balance;
-    }
-
     public void addBalance(float value)
     {
         //we need to round value. sometimes java have vague calculations and sets many symbols after a decimal point
-        this.balance += Math.round(value * 100)/100.0f;
+        this.balance += Math.round(value * 100) / 100.0f;
     }
 
     public void subtractBalance(float value)
     {
         //we need to round value. sometimes java have vague calculations and sets many symbols after a decimal point
-        this.balance -= Math.round(value * 100)/100.0f;
+        this.balance -= Math.round(value * 100) / 100.0f;
     }
 
     public float getScore()
@@ -281,15 +266,10 @@ public class Account
         return score;
     }
 
-    public void setScore(float score)
-    {
-        this.score = score;
-    }
-
     public void addScore(float value)
     {
         //we need to round value. sometimes java have vague calculations and sets many symbols after a decimal point
-        this.score += Math.round(value * 100)/100.0f;
+        this.score += Math.round(value * 100) / 100.0f;
     }
 
     public void setSex(String sex)
@@ -335,8 +315,8 @@ public class Account
                 float balance = Float.parseFloat(account[AccountColumns.BALANCE.value]);
                 float score = Float.parseFloat(account[AccountColumns.SCORE.value]);
                 //we need to round value. sometimes java have vague calculations and sets many symbols after a decimal point
-                this.balance = Math.round(balance * 100)/100.0f;
-                this.score = Math.round(score * 100)/100.0f;
+                this.balance = Math.round(balance * 100) / 100.0f;
+                this.score = Math.round(score * 100) / 100.0f;
                 this.sex = account[AccountColumns.SEX.value];
 
                 sc.close();
@@ -347,6 +327,7 @@ public class Account
         System.out.println("[-] Sorry, email or password are incorrect");
         return false;
     }
+
     public void saveAccountToFile() throws IOException
     {
         FileWriter writer = new FileWriter(this.accountFile, true);
@@ -363,13 +344,12 @@ public class Account
         //define 2 types of string to write, based on payments details.
         if (this.paymentDetails.size() == 0)
         {
-            writer.write(String.format("%s,%s,%s,%s,null,%s,%s,%s\n", this.userId, this.email, this.username, this.password, this.balance,this.score,this.sex));
-        }
-        else
+            writer.write(String.format("%s,%s,%s,%s,null,%s,%s,%s\n", this.userId, this.email, this.username, this.password, this.balance, this.score, this.sex));
+        } else
         {
             writer.write(String.format("%s,%s,%s,%s,%s-%s-%s,%s,%s,%s\n", this.userId, this.email, this.username,
-                                                                    this.password, paymentDetails.get("cardNumber"), paymentDetails.get("cardDate"),
-                                                                    paymentDetails.get("holderName"), this.balance, this.score, this.sex));
+                    this.password, paymentDetails.get("cardNumber"), paymentDetails.get("cardDate"),
+                    paymentDetails.get("holderName"), this.balance, this.score, this.sex));
         }
         writer.close();
     }
@@ -394,16 +374,14 @@ public class Account
             {
                 if (this.paymentDetails.size() == 0)
                 {
-                    tempWriter.write(String.format("%s,%s,%s,%s,null,%s,%s,%s\n", this.userId, this.email, this.username, this.password, this.balance,this.score,this.sex));
-                }
-                else
+                    tempWriter.write(String.format("%s,%s,%s,%s,null,%s,%s,%s\n", this.userId, this.email, this.username, this.password, this.balance, this.score, this.sex));
+                } else
                 {
                     tempWriter.write(String.format("%s,%s,%s,%s,%s-%s-%s,%s,%s,%s\n", this.userId, this.email, this.username,
                             this.password, paymentDetails.get("cardNumber"), paymentDetails.get("cardDate"),
                             paymentDetails.get("holderName"), this.balance, this.score, this.sex));
                 }
-            }
-            else
+            } else
             {
                 tempWriter.write(currentLine + "\n");
             }

@@ -23,6 +23,7 @@ public class Transactions
         this.user = user;
     }
 
+    //returns all transaction where user added coins to the balance
     public ArrayList<HashMap<String, Object>> getTopUps() throws FileNotFoundException
     {
         ArrayList<HashMap<String, Object>> topUps = new ArrayList<>();
@@ -40,10 +41,10 @@ public class Transactions
             String[] record = currentLine.split(",");
 
             //use enum to easily operate with csv columns
-            if(record[TransactionsColumns.USER_ID.value].equals(this.user.getUserId()) && record[TransactionsColumns.TRANSACTION_TYPE.value].equals(TransactionsType.TOP_UP.value))
+            if (record[TransactionsColumns.USER_ID.value].equals(this.user.getUserId()) && record[TransactionsColumns.TRANSACTION_TYPE.value].equals(TransactionsType.TOP_UP.value))
             {
                 //create temp hashmap to add it later to the arraylist
-                HashMap<String,Object> temp = new HashMap<>();
+                HashMap<String, Object> temp = new HashMap<>();
 
                 temp.put(TransactionsColumns.TRANSACTION_ID.name(), record[TransactionsColumns.TRANSACTION_ID.value]);
                 temp.put(TransactionsColumns.AMOUNT.name(), record[TransactionsColumns.AMOUNT.value]);
@@ -56,6 +57,7 @@ public class Transactions
         return topUps;
     }
 
+    //used to add coins to the balance
     public void topUpCard() throws IOException
     {
         HashMap<String, String> paymentDetails = new HashMap<>();
@@ -65,13 +67,16 @@ public class Transactions
         if (this.user.getPaymentDetails().size() == 0)
         {
             createPaymentMethod(paymentDetails, inputScanner);
-        }
-        else
+        } else
         {
             //validation of user choice
             while (true)
             {
-                System.out.println(this.user.getPaymentDetails());
+                System.out.println("\n-----Card details-----");
+                System.out.println("[+] Card number: " + user.getPaymentDetails().get("cardNumber"));
+                System.out.println("[+] Expiration date: " + user.getPaymentDetails().get("cardDate"));
+                System.out.println("[+] Cardholder name: " + user.getPaymentDetails().get("holderName"));
+                System.out.println("-\n".repeat(20));
                 System.out.print("[+] Would you like to use this payment details?(y/n): ");
                 String userChoice = inputScanner.nextLine();
                 if (userChoice.equals("y"))
@@ -81,13 +86,11 @@ public class Transactions
                     //later it can be used to send details to the bank for the approval
                     paymentDetails = this.user.getPaymentDetails();
                     break;
-                }
-                else if (userChoice.equals("n"))
+                } else if (userChoice.equals("n"))
                 {
                     createPaymentMethod(paymentDetails, inputScanner);
                     break;
-                }
-                else
+                } else
                 {
                     System.out.println("[-] Wrong value");
                 }
@@ -108,6 +111,7 @@ public class Transactions
         }
     }
 
+    //used to create or update payment details
     private void createPaymentMethod(HashMap<String, String> paymentDetails, Scanner inputScanner) throws IOException
     {
         //iterate till user has not entered correct details
@@ -120,7 +124,7 @@ public class Transactions
             System.out.print("[+] Enter card holder name: ");
             paymentDetails.put("holderName", inputScanner.nextLine());
 
-            if(this.user.validatePaymentDetails(paymentDetails))
+            if (this.user.validatePaymentDetails(paymentDetails))
             {
                 System.out.print("[+] Would you like to save payment details?(y/n): ");
                 String userChoice = inputScanner.nextLine();
@@ -129,8 +133,7 @@ public class Transactions
                     this.user.setPaymentDetails(paymentDetails);
                     this.user.updateCredentials();
                     System.out.println("[+] Saved successfully");
-                }
-                else
+                } else
                 {
                     System.out.println("[-] Your payment details were not saved");
                 }
@@ -139,6 +142,7 @@ public class Transactions
         }
     }
 
+    //top up account using "Apple Pay"
     public void topUpApplePay() throws IOException
     {
         Scanner inputScanner = new Scanner(System.in);
@@ -155,11 +159,14 @@ public class Transactions
             }
         }
     }
+
+    //adds coins to balance
     private boolean addMoney(float amount) throws IOException
     {
         if (amount > 0)
         {
             this.user.addBalance(amount);
+            //updates balance in the file
             this.user.updateCredentials();
             return true;
         }
@@ -168,6 +175,7 @@ public class Transactions
         return false;
     }
 
+    //saves transaction to file
     private void saveTopUp(float amount) throws IOException
     {
         FileWriter writerTransactions = new FileWriter(transactionsFile, true);
@@ -175,6 +183,7 @@ public class Transactions
         writerTransactions.close();
     }
 
+    //get list of all purchases
     public ArrayList<HashMap<String, Object>> getPurchases() throws FileNotFoundException
     {
         ArrayList<HashMap<String, Object>> purchases = new ArrayList<>();
@@ -193,12 +202,13 @@ public class Transactions
             String[] record = currentLine.split(",");
 
             //use enum to easily operate with csv columns
-            if(record[TransactionsColumns.USER_ID.value].equals(this.user.getUserId()) && record[TransactionsColumns.TRANSACTION_TYPE.value].equals(TransactionsType.BUY.value))
+            if (record[TransactionsColumns.USER_ID.value].equals(this.user.getUserId()) && record[TransactionsColumns.TRANSACTION_TYPE.value].equals(TransactionsType.BUY.value))
             {
-                HashMap<String,Object> temp = new HashMap<>();
+                HashMap<String, Object> temp = new HashMap<>();
 
                 temp.put(TransactionsColumns.TRANSACTION_ID.name(), record[TransactionsColumns.TRANSACTION_ID.value]);
-                for (HashMap<String, Object> item :items)
+                //get properties of the item such as price and name based on its id
+                for (HashMap<String, Object> item : items)
                 {
                     if (item.get(ItemsColumns.ITEM_ID.name()).equals(record[TransactionsColumns.ITEM_ID.value]))
                     {
@@ -217,6 +227,7 @@ public class Transactions
         return purchases;
     }
 
+    //allows user to buy item using VRC coins
     public void purchaseItem(String itemId, int quantity) throws IOException
     {
         Scanner scannerItems = new Scanner(this.itemFile);
@@ -241,7 +252,7 @@ public class Transactions
                     return;
                 }
 
-                float toPay = Float.parseFloat(item[ItemsColumns.PRICE.value])  * quantity;
+                float toPay = Float.parseFloat(item[ItemsColumns.PRICE.value]) * quantity;
                 //check if user has balance to pay
                 if (toPay > this.user.getBalance())
                 {
@@ -253,9 +264,9 @@ public class Transactions
                 this.user.updateCredentials();
 
                 //subtract purchased quantity from initial
-                item[ItemsColumns.STOCK.value] =  String.valueOf(Integer.parseInt(item[ItemsColumns.STOCK.value]) - quantity);
+                item[ItemsColumns.STOCK.value] = String.valueOf(Integer.parseInt(item[ItemsColumns.STOCK.value]) - quantity);
                 //create a string to write to the file
-                String updatedItem = String.join(",", item)+"\n";
+                String updatedItem = String.join(",", item) + "\n";
 
                 //need to close scanner before updating file, we cannot delete and rename it because file is in operation
                 scannerItems.close();
@@ -263,12 +274,14 @@ public class Transactions
                 //update item values in the file
                 updateItemFile(updatedItem, item[ItemsColumns.ITEM_ID.value]);
                 savePurchase(item[ItemsColumns.ITEM_ID.value], quantity, toPay);
+                System.out.println("[+] Successfully purchased☻");
                 return;
             }
         }
         System.out.println("[-] No item with such id");
     }
 
+    //used to overwrite file with items to update stock
     public void updateItemFile(String item, String itemId) throws IOException
     {
         //create a temp file in order to rewrite friends.csv
@@ -289,8 +302,7 @@ public class Transactions
             if (currentItem[ItemsColumns.ITEM_ID.value].equals(itemId))
             {
                 tempWriter.write(item);
-            }
-            else
+            } else
             {
                 tempWriter.write(currentLine + "\n");
             }
@@ -304,6 +316,7 @@ public class Transactions
         tempFile.renameTo(this.itemFile);
     }
 
+    //save purchase to the file
     private void savePurchase(String itemId, int quantity, float amount) throws IOException
     {
         //add new record to the purchase file
@@ -312,6 +325,7 @@ public class Transactions
         writerTransactions.close();
     }
 
+    //returns all items in the file
     public ArrayList<HashMap<String, Object>> getItems() throws FileNotFoundException
     {
         //create local array list to return it from the method

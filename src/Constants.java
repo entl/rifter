@@ -1,4 +1,6 @@
-//separate class for constants to access them easily and store in on the one place
+/**
+ * Separated class for constants to access them easily and store them in the one place
+ */
 public class Constants
 {
     protected static final String ACCOUNTS_CSV = "accounts.csv";

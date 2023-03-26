@@ -21,6 +21,10 @@ public class Main
     public static Friends friends;
     public static Quests quests;
 
+    /**
+     * Entry point of the program. Used to sign up/sign in or reset password.
+     * After authorization user can access program.
+     */
     public static void main(String[] args)
     {
         while (true)
@@ -29,6 +33,7 @@ public class Main
             System.out.println("-".repeat(30));
             System.out.printf("%17s%n", "RIFTER");
             System.out.println("-".repeat(30));
+
             System.out.print("1. Register\n2. Login\n3. Forgot Password\n4. Exit\n\n[+] Choose one: ");
             String userChoice = scannerInput.nextLine();
             try
@@ -48,14 +53,16 @@ public class Main
                     case "4" -> System.exit(0);
                     default -> System.out.println("[-] Wrong choice");
                 }
-            }
-            catch(IOException e)
+            } catch (IOException e)
             {
                 System.out.println("[!] Error: " + e);
             }
         }
     }
 
+    /**
+     * Home method describes 'Home' part of the flowchart.
+     */
     public static void home()
     {
         //after log in assign create instances based on user object
@@ -76,10 +83,10 @@ public class Main
                     if (gameWindow.getIsOpen())
                     {
                         System.out.println("[!] It seems game already opened");
-                    }
-                    else
+                    } else
                     {
                         gameWindow.start(quests, user);
+                        //after we open the map start loop, so user cannot use console
                         while (gameWindow.getIsOpen())
                         {
                             System.out.println("[+] Close the game and press any key to continue...");
@@ -97,6 +104,9 @@ public class Main
         }
     }
 
+    /**
+     * Implementation of 'Settings' flowchart
+     */
     public static void menuSettings()
     {
         clearScreen();
@@ -117,17 +127,22 @@ public class Main
                 }
                 default -> System.out.println("[-] No such option");
             }
-        }
-        catch (IOException e)
+        } catch (IOException e)
         {
             System.out.println("[!] Error: " + e);
         }
     }
 
+    /**
+     * Implements structure of the 'Wallet' flowchart.
+     * Unlike, flowchart buy item functionality implemented in this method.
+     * Because, I could not achieve it in Map method.
+     */
     public static void menuWallet()
     {
         clearScreen();
 
+        System.out.printf("[+] Your current balance is %f\n", user.getBalance());
         System.out.print("1. Purchase history\n2. Purchase item\n3. Top up wallet\n4. Top up history\n5. Back\n\n[+] Choose one: ");
         String userChoice = scannerInput.nextLine();
 
@@ -145,12 +160,11 @@ public class Main
                 }
                 default -> System.out.println("[-] No such option");
             }
-        }
-        catch (IOException e)
+        } catch (IOException e)
         {
-            System.out.println("[!] Error: " + e);;
-        }
-        catch (InputMismatchException e)
+            System.out.println("[!] Error: " + e);
+            ;
+        } catch (InputMismatchException e)
         {
             System.out.println("[!] Incorrect input");
             //clear buffer
@@ -158,6 +172,10 @@ public class Main
         }
     }
 
+    /**
+     * Takes a number and returns its square root.
+     * Implementation of 'Profile' flowchart.
+     */
     public static void menuProfile()
     {
         clearScreen();
@@ -180,12 +198,11 @@ public class Main
                 }
                 default -> System.out.println("[-] No such option");
             }
-        }
-        catch (IOException e)
+        } catch (IOException e)
         {
-            System.out.println("[!] Error: " + e);;
-        }
-        catch (InputMismatchException e)
+            System.out.println("[!] Error: " + e);
+            ;
+        } catch (InputMismatchException e)
         {
             System.out.println("[!] Incorrect input");
             //clear buffer
@@ -193,16 +210,22 @@ public class Main
         }
     }
 
+    /**
+     * Method is used to clear console.
+     * I could not find in java function like "clear", so this method deletes 1000 characters.
+     * https://stackoverflow.com/questions/25209808/clear-the-console-in-java
+     */
     public static void clearScreen()
     {
-        //the only option to clear screen in IDE
-        //https://stackoverflow.com/questions/25209808/clear-the-console-in-java
-        for(int i = 0; i < 1000; i++)
+        for (int i = 0; i < 1000; i++)
         {
             System.out.println("\b");
         }
     }
 
+    /**
+     * Method which waits for user input to continue program
+     */
     public static void pressToContinue()
     {
         System.out.println("\nPress any key to continue...");
