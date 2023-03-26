@@ -48,6 +48,9 @@ GeeksforGeeks. (2020). How to Swap Two Elements in an ArrayList in Java? [online
 
 Baeldung. (2023) Attaching Values to Java Enum [online] Available at: https://www.baeldung.com/java-enum-values [Accessed 26 Mar. 2023].
 
+## Credits (for images)
+07harris/Paranoid 19dante91 27alexmad27 874521 Alistair Alucus Alucus Atomika Bakura155 Blue Beedrill Boomxbig Bulbapedia and Bulbaforums chimcharsfireworkd Chio CNickC/CNC Dewitty Flood Fused G-olden help14 Jesse TBPro lordindy Kizemaru_Kurunosuke klnothincomin Kuroda-Taiki Kymotonian Newtiteuf Novus Pokemon_Diamond PrinceLegendario Reck Red-Gyrados REMY35 RHN Saurav Scarexshivaking Seiyouh SL249 spaceemotion spypoke megafc ThePokemonChronicles WesleyFG NYKNCK javikolog
+
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
