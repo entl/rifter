@@ -1,0 +1,13 @@
+userId,email,username,password,paymentDetails,balance,score,sex
+1,test@test.com,entl,123,1234123412341234-06/26-New Test,1401.14,1065.74,m
+2,test2@test.com,notEntl,mypwd,4444111122223333-11/23-Jack Tefa,99.2,0.0,m
+3,test2@gmail.com,testUser2,314713584,null,10.0,0.0,m
+4,test3@gmail.com,testUser3,314713584,3333555533335555-12/24-Igor Vlasov,102.0,0.0,m
+5,test4@gmail.com,testUser4,-337357657,3333512533335555-12/27-Igor Vlasov123,102.0,0.0,m
+6,test43@gmail.com,testUser42,-337357657,3333512533335555-12/27-Igor Vlasov124213,102.0,0.0,m
+7,test4324@gmail.com,testUser423,-337357657,null,102.0,102.0,m
+8,me@gmail.com,me,-1867378635,1234123412341234-05/23-New Test,4718.3,4520.0,f
+9,new@test.com,newtest,-1861353340,null,40.0,270.0,m
+10,newtest2@gmail.com,newtest2,-1861353340,null,0.0,10.0,m
+11,teagasg@gmail.com,e,-1861353340,null,0.0,0.0,m
+12,testtest@gmail.com,newtestuser,-1861353340,null,0.0,0.0,m

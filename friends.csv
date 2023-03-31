@@ -1,0 +1,9 @@
+userId,friendId,status
+1,8,accepted
+8,1,accepted
+1,4,accepted
+4,1,accepted
+8,9,accepted
+9,8,accepted
+7,8,pending
+8,11,pending

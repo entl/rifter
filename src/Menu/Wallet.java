@@ -78,10 +78,10 @@ public class Wallet
     public static void buyItem(Transactions transactions, Scanner scannerInput) throws IOException
     {
         //output all items
-        System.out.printf("\n%-8s %-20s %-30s %-30s %-8s %-8s\n", "ID", "Company", "Name", "Description", "Price", "Stock");
+        System.out.printf("\n%-8s %-20s %-24s %-12s %-8s %-30s\n", "ID", "Company", "Name", "Price", "Stock", "Description");
         for (HashMap<String, Object> item : transactions.getItems())
         {
-            System.out.printf("%-8s %-20s %-30s %-30s %-8s %-8s\n", item.get(ItemsColumns.ITEM_ID.name()), item.get(ItemsColumns.COMPANY_NAME.name()), item.get(ItemsColumns.NAME.name()), item.get(ItemsColumns.DESCRIPTION.name()), item.get(ItemsColumns.PRICE.name()), item.get(ItemsColumns.STOCK.name()));
+            System.out.printf("%-8s %-20s %-24s %-12s %-8s %-30s\n", item.get(ItemsColumns.ITEM_ID.name()), item.get(ItemsColumns.COMPANY_NAME.name()), item.get(ItemsColumns.NAME.name()), item.get(ItemsColumns.PRICE.name()), item.get(ItemsColumns.STOCK.name()), item.get(ItemsColumns.DESCRIPTION.name()));
         }
 
         //check if user wants to leave
