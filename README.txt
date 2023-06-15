@@ -1,5 +1,4 @@
 Written by Maksym Vorobyov
-SID: 2217939
 Team: Verity Rift
 Live Brief 1
 # RIFTER
